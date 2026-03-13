@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import productRoutes from "./routes/product.routes.js";
-//import swaggerRouter from "../swagger.js";
+import swaggerRouter from "../swagger.js";
 
 dotenv.config();
 
@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/products", productRoutes);
-//app.use("/api-docs", swaggerRouter);
+app.use("/api-docs", swaggerRouter);
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {

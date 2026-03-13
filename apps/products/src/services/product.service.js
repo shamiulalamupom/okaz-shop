@@ -1,4 +1,4 @@
-import Product from "../models/product.js";
+import Product from "../models/product.model.js";
 
 // Créer un nouveau produit
 export const createProduct = async (req, res) => {
@@ -61,14 +61,10 @@ export const getProductById = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     // Mise à jour du produit en utilisant son ID et les nouvelles données envoyées
-    const updated = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true, // retourne la version mise à jour
-        runValidators: true, // applique les validations du modèle
-      }
-    );
+    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // retourne la version mise à jour
+      runValidators: true, // applique les validations du modèle
+    });
 
     // Retour du produit après modification
     return {

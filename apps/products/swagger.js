@@ -1,4 +1,6 @@
-const swaggerJsdoc = require("swagger-jsdoc");
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+import express from "express";
 
 const options = {
   definition: {
@@ -6,11 +8,9 @@ const options = {
     info: {
       title: "Products Service API",
       version: "1.0.0",
-      description: "API CRUD pour gérer les produits du catalogue"
+      description: "API CRUD pour gérer les produits du catalogue",
     },
-    servers: [
-      { url: "http://localhost:3002" }
-    ],
+    servers: [{ url: "http://localhost:3002" }],
     components: {
       schemas: {
         Product: {
@@ -19,10 +19,17 @@ const options = {
           properties: {
             _id: { type: "string", description: "ID MongoDB du produit" },
             name: { type: "string", description: "Nom du produit" },
-            description: { type: "string", description: "Description du produit" },
+            description: {
+              type: "string",
+              description: "Description du produit",
+            },
             price: { type: "number", description: "Prix du produit" },
             category: { type: "string", description: "Catégorie du produit" },
-            createdAt: { type: "string", format: "date-time", description: "Date de création" }
+            createdAt: {
+              type: "string",
+              format: "date-time",
+              description: "Date de création",
+            },
           },
           example: {
             _id: "64f4b5a9d3a3b0c1f1234567",
@@ -30,13 +37,13 @@ const options = {
             description: "Description produit",
             price: 99.99,
             category: "Catégorie A",
-            createdAt: "2026-03-05T12:00:00Z"
-          }
-        }
-      }
-    }
+            createdAt: "2026-03-05T12:00:00Z",
+          },
+        },
+      },
+    },
   },
-  apis: []
+  apis: [],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
@@ -48,4 +55,4 @@ const router = express.Router();
 
 router.use("/", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-module.exports = router;
+export default router;
