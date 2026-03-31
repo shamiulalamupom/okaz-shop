@@ -17,7 +17,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   mongo:
-    image: mongo:6.0
+    image: mongo:8.0
     container_name: okaz-mongo
     ports:
       - "27017:27017"
@@ -25,10 +25,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-example}
     healthcheck:
-      test: ["CMD-SHELL", 'mongo --eval "db.adminCommand(''ping'')" --quiet']
+      test:
+        [
+          "CMD-SHELL",
+          'mongosh --host localhost --port 27017 --username "$$MONGO_INITDB_ROOT_USERNAME" --password "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --quiet --eval "quit(db.adminCommand({ ping: 1 }).ok ? 0 : 1)"',
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 20s
     volumes:
       - mongo-data:/data/db
 
