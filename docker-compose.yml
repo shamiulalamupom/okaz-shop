@@ -48,6 +48,7 @@ services:
     environment:
       GATEWAY_PORT: 4000
       AUTH_SERVICE_URL: http://auth:4001
+      GATEWAY_SERVICE_URL: http://gateway:4000
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
       AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-okaz-auth}
       AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}

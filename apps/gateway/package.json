@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.17.1",
-    "@hono/swagger-ui": "^0.5.2",
+    "@hono/swagger-ui": "^0.5.3",
     "@okaz/shared": "workspace:*",
+    "dotenv": "^17.3.1",
     "hono": "^4.8.5",
     "zod": "^3.25.76"
   }
