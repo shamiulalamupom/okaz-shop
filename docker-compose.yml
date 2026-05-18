@@ -53,7 +53,7 @@ services:
       AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-okaz-auth}
       AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}
       AUTH_REQUEST_MAX_BYTES: ${AUTH_REQUEST_MAX_BYTES:-1024}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
       LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-5}
       LOGIN_RATE_LIMIT_WINDOW_MS: ${LOGIN_RATE_LIMIT_WINDOW_MS:-60000}
       NODE_ENV: development
@@ -65,7 +65,7 @@ services:
           "CMD-SHELL",
           'node -e "fetch(''http://localhost:4000/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
-      interval: 10s
+      interval: 300s
       timeout: 5s
       retries: 10
 
