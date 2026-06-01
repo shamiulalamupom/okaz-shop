@@ -493,6 +493,19 @@ export const gatewayOpenApi = {
         }
       }
     },
+    '/payments/webhook': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Stripe payment webhook (public, signature-verified)',
+        description:
+          'Called by Stripe, not clients. No JWT; authenticated by the Stripe-Signature header over the raw body. Active only when PAYMENT_PROVIDER=stripe. Idempotent.',
+        responses: {
+          '200': { description: 'Event received' },
+          '400': { description: 'Missing or invalid signature' },
+          '404': { description: 'Not in stripe mode' }
+        }
+      }
+    },
     '/protected': {
       get: {
         tags: ['Miscellaneous'],

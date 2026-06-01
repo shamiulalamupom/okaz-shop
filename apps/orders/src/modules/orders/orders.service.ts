@@ -38,6 +38,55 @@ const loadOrderForUser = async (userId: string, orderId: string) => {
   return order;
 };
 
+const loadOrder = async (orderId: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true, payment: true }
+  });
+
+  if (!order) {
+    throw new OrderError('ORDER_NOT_FOUND', 'Order not found');
+  }
+
+  return order;
+};
+
+/**
+ * Core payment-outcome transition shared by the mock confirmation endpoint and
+ * the Stripe webhook. Idempotent: an already-paid order is a no-op. On success
+ * the owning user's cart is cleared (best effort).
+ */
+const applyOutcome = async (
+  order: { id: string; userId: string; status: OrderStatus },
+  outcome: 'success' | 'failure'
+) => {
+  if (order.status === OrderStatus.PAID) {
+    return loadOrder(order.id);
+  }
+
+  if (order.status !== OrderStatus.AWAITING_PAYMENT) {
+    throw new OrderError('INVALID_STATE', `Order cannot be confirmed from status ${order.status}`);
+  }
+
+  if (outcome === 'failure') {
+    await prisma.$transaction([
+      prisma.payment.update({ where: { orderId: order.id }, data: { status: PaymentStatus.FAILED } }),
+      prisma.order.update({ where: { id: order.id }, data: { status: OrderStatus.FAILED } })
+    ]);
+
+    return loadOrder(order.id);
+  }
+
+  await prisma.$transaction([
+    prisma.payment.update({ where: { orderId: order.id }, data: { status: PaymentStatus.SUCCEEDED } }),
+    prisma.order.update({ where: { id: order.id }, data: { status: OrderStatus.PAID } })
+  ]);
+
+  await cartClient.clear(order.userId).catch(() => undefined);
+
+  return loadOrder(order.id);
+};
+
 export const ordersService = {
   async checkout(userId: string) {
     let cartLines;
@@ -140,36 +189,20 @@ export const ordersService = {
   },
 
   /**
-   * Stand-in for the Stripe webhook (Phase 3). Idempotent: confirming an
-   * already-paid order is a no-op. On success the cart is cleared (best effort).
+   * Mock-only confirmation: verifies the order belongs to the caller, then
+   * applies the outcome. The Stripe webhook uses {@link settlePayment} instead.
    */
   async confirmPayment(userId: string, orderId: string, outcome: 'success' | 'failure') {
     const order = await loadOrderForUser(userId, orderId);
+    return applyOutcome(order, outcome);
+  },
 
-    if (order.status === OrderStatus.PAID) {
-      return order;
-    }
-
-    if (order.status !== OrderStatus.AWAITING_PAYMENT) {
-      throw new OrderError('INVALID_STATE', `Order cannot be confirmed from status ${order.status}`);
-    }
-
-    if (outcome === 'failure') {
-      await prisma.$transaction([
-        prisma.payment.update({ where: { orderId }, data: { status: PaymentStatus.FAILED } }),
-        prisma.order.update({ where: { id: orderId }, data: { status: OrderStatus.FAILED } })
-      ]);
-
-      return loadOrderForUser(userId, orderId);
-    }
-
-    await prisma.$transaction([
-      prisma.payment.update({ where: { orderId }, data: { status: PaymentStatus.SUCCEEDED } }),
-      prisma.order.update({ where: { id: orderId }, data: { status: OrderStatus.PAID } })
-    ]);
-
-    await cartClient.clear(userId).catch(() => undefined);
-
-    return loadOrderForUser(userId, orderId);
+  /**
+   * System-level settlement driven by the payment provider webhook. Not
+   * user-scoped: the webhook is authenticated by signature, not a JWT.
+   */
+  async settlePayment(orderId: string, outcome: 'success' | 'failure') {
+    const order = await loadOrder(orderId);
+    return applyOutcome(order, outcome);
   }
 };

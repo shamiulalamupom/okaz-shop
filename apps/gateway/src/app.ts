@@ -18,6 +18,7 @@ import { createAuthProxyRoutes } from "./modules/auth-proxy/auth-proxy.routes.js
 import { createProductsProxyRoutes } from "./modules/products-proxy/products-proxy.routes.js";
 import { createCartProxyRoutes } from "./modules/cart-proxy/cart-proxy.routes.js";
 import { createOrdersProxyRoutes } from "./modules/orders-proxy/orders-proxy.routes.js";
+import { createPaymentsProxyRoutes } from "./modules/payments-proxy/payments-proxy.routes.js";
 import { createDemoRoutes } from "./modules/demo/demo.routes.js";
 import { createHealthRoutes } from "./modules/health/health.routes.js";
 
@@ -64,6 +65,11 @@ gatewayApp.route(
 gatewayApp.route(
   "/orders",
   createOrdersProxyRoutes(gatewayConfig.ordersServiceUrl, gatewayConfig.jwt),
+);
+// Public Stripe webhook passthrough (no JWT); proxied to the orders service.
+gatewayApp.route(
+  "/payments",
+  createPaymentsProxyRoutes(gatewayConfig.ordersServiceUrl),
 );
 gatewayApp.route("/", createDemoRoutes(gatewayConfig.jwt));
 

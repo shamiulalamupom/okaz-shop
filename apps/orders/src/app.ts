@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import './hono-env.js';
 import { healthRoutes } from './modules/health/health.routes.js';
 import { ordersRoutes } from './modules/orders/orders.routes.js';
+import { paymentsRoutes } from './modules/payments/payments.routes.js';
 
 const logger = createLogger('orders-service');
 
@@ -14,6 +15,7 @@ ordersApp.use('*', requestLoggerMiddleware(logger));
 
 ordersApp.route('/', healthRoutes);
 ordersApp.route('/orders', ordersRoutes);
+ordersApp.route('/payments', paymentsRoutes);
 
 ordersApp.notFound((c) => jsonError(c, 404, 'Not Found', { code: 'NOT_FOUND' }));
 
