@@ -15,6 +15,7 @@ import "./hono-env.js";
 import { createLoginRateLimitMiddleware } from "./middleware/rate-limit.middleware.js";
 import { securityHeadersMiddleware } from "./middleware/security-headers.middleware.js";
 import { createAuthProxyRoutes } from "./modules/auth-proxy/auth-proxy.routes.js";
+import { createProductsProxyRoutes } from "./modules/products-proxy/products-proxy.routes.js";
 import { createDemoRoutes } from "./modules/demo/demo.routes.js";
 import { createHealthRoutes } from "./modules/health/health.routes.js";
 
@@ -29,7 +30,7 @@ gatewayApp.use(
   cors({
     origin: gatewayConfig.corsOrigin,
     allowHeaders: ["Authorization", "Content-Type", "X-Request-Id"],
-    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   }),
 );
 gatewayApp.use("*", securityHeadersMiddleware());
@@ -50,6 +51,10 @@ gatewayApp.route("/", createHealthRoutes(gatewayConfig.authServiceUrl));
 gatewayApp.get("/openapi.json", (c) => c.json(gatewayOpenApi));
 gatewayApp.get("/docs", swaggerUI({ url: "/openapi.json" }));
 gatewayApp.route("/auth", createAuthProxyRoutes(gatewayConfig.authServiceUrl));
+gatewayApp.route(
+  "/products",
+  createProductsProxyRoutes(gatewayConfig.productsServiceUrl, gatewayConfig.jwt),
+);
 gatewayApp.route("/", createDemoRoutes(gatewayConfig.jwt));
 
 gatewayApp.notFound((c) =>

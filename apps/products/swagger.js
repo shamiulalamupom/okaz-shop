@@ -10,7 +10,7 @@ const options = {
       version: "1.0.0",
       description: "API CRUD pour gérer les produits du catalogue",
     },
-    servers: [{ url: "http://localhost:3002" }],
+    servers: [{ url: "http://localhost:4002" }],
     components: {
       schemas: {
         Product: {
@@ -46,11 +46,9 @@ const options = {
   apis: [],
 };
 
-const swaggerSpec = swaggerJsdoc(options);
+const swaggerSpec = swaggerJSDoc(options);
 
 // Définition des routes Swagger pour Express
-const swaggerUi = require("swagger-ui-express");
-const express = require("express");
 const router = express.Router();
 
 router.use("/", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
