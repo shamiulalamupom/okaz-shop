@@ -15,6 +15,7 @@ services:
       retries: 10
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
 
   mongo:
     image: mongo:8.0
@@ -47,10 +48,13 @@ services:
         condition: service_healthy
       products:
         condition: service_healthy
+      cart:
+        condition: service_healthy
     environment:
       GATEWAY_PORT: 4000
       AUTH_SERVICE_URL: http://auth:4001
       PRODUCTS_SERVICE_URL: http://products:4002
+      CART_SERVICE_URL: http://cart:4003
       GATEWAY_SERVICE_URL: http://gateway:4000
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
       AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-okaz-auth}
@@ -125,6 +129,35 @@ services:
         [
           "CMD-SHELL",
           'node -e "fetch(''http://localhost:4002/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  cart:
+    build:
+      context: .
+      dockerfile: apps/cart/Dockerfile
+    container_name: okaz-cart
+    depends_on:
+      postgres:
+        condition: service_healthy
+      products:
+        condition: service_healthy
+    environment:
+      CART_PORT: 4003
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/okaz_cart?schema=public
+      PRODUCTS_SERVICE_URL: http://products:4002
+      CART_REQUEST_MAX_BYTES: ${CART_REQUEST_MAX_BYTES:-1024}
+      NODE_ENV: development
+    command: sh -c "pnpm prisma:migrate:deploy && pnpm start"
+    expose:
+      - "4003"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://localhost:4003/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
       interval: 10s
       timeout: 5s

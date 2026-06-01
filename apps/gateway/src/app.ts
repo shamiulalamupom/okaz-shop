@@ -16,6 +16,7 @@ import { createLoginRateLimitMiddleware } from "./middleware/rate-limit.middlewa
 import { securityHeadersMiddleware } from "./middleware/security-headers.middleware.js";
 import { createAuthProxyRoutes } from "./modules/auth-proxy/auth-proxy.routes.js";
 import { createProductsProxyRoutes } from "./modules/products-proxy/products-proxy.routes.js";
+import { createCartProxyRoutes } from "./modules/cart-proxy/cart-proxy.routes.js";
 import { createDemoRoutes } from "./modules/demo/demo.routes.js";
 import { createHealthRoutes } from "./modules/health/health.routes.js";
 
@@ -30,7 +31,7 @@ gatewayApp.use(
   cors({
     origin: gatewayConfig.corsOrigin,
     allowHeaders: ["Authorization", "Content-Type", "X-Request-Id"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 gatewayApp.use("*", securityHeadersMiddleware());
@@ -54,6 +55,10 @@ gatewayApp.route("/auth", createAuthProxyRoutes(gatewayConfig.authServiceUrl));
 gatewayApp.route(
   "/products",
   createProductsProxyRoutes(gatewayConfig.productsServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/cart",
+  createCartProxyRoutes(gatewayConfig.cartServiceUrl, gatewayConfig.jwt),
 );
 gatewayApp.route("/", createDemoRoutes(gatewayConfig.jwt));
 
