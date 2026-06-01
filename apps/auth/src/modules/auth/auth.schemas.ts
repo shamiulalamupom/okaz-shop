@@ -1,3 +1,5 @@
+// ../apps/auth/src/modules/auth/auth.schemas.ts
+
 import { z } from 'zod';
 
 const emailSchema = z

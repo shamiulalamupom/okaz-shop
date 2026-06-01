@@ -1,3 +1,5 @@
+// ../apps/auth/src/modules/auth/auth.routes.ts
+
 import { Hono } from 'hono';
 
 import { authConfig } from '../../config/auth.config.js';
