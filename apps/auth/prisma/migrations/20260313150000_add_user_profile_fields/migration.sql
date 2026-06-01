@@ -1,0 +1,6 @@
+ALTER TABLE "User"
+ADD COLUMN "nom" TEXT,
+ADD COLUMN "prenom" TEXT,
+ADD COLUMN "telephone" TEXT,
+ADD COLUMN "adresseLivraison" TEXT,
+ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT true;

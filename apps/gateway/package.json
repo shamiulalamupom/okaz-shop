@@ -1,0 +1,19 @@
+{
+  "name": "@okaz/gateway",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.17.1",
+    "@hono/swagger-ui": "^0.5.3",
+    "@okaz/shared": "workspace:*",
+    "dotenv": "^17.3.1",
+    "hono": "^4.8.5",
+    "zod": "^3.25.76"
+  }
+}

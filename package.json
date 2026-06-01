@@ -1,16 +1,25 @@
 {
   "name": "okaz-backend",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "packageManager": "pnpm@10.12.2",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "pnpm -r build",
+    "dev:auth": "pnpm --filter @okaz/auth dev",
+    "dev:gateway": "pnpm --filter @okaz/gateway dev",
+    "start:auth": "pnpm --filter @okaz/auth start",
+    "start:gateway": "pnpm --filter @okaz/gateway start",
+    "prisma:generate": "pnpm --filter @okaz/auth prisma:generate",
+    "prisma:migrate": "pnpm --filter @okaz/auth prisma:migrate",
+    "prisma:migrate:deploy": "pnpm --filter @okaz/auth prisma:migrate:deploy",
+    "prisma:seed": "pnpm --filter @okaz/auth prisma:seed",
+    "test": "vitest run",
+    "test:e2e": "vitest run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "express": "^5.2.1"
+  "devDependencies": {
+    "@types/node": "^22.16.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.8"
   }
 }
