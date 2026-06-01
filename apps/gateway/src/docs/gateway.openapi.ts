@@ -8,6 +8,7 @@ export const gatewayOpenApi = {
     { name: 'Auth', description: 'Authentication routes proxied to the auth service' },
     { name: 'Products', description: 'Product routes proxied to the products service' },
     { name: 'Cart', description: 'Cart routes proxied to the cart service (JWT required)' },
+    { name: 'Orders', description: 'Order + checkout routes proxied to the orders service (JWT required)' },
     { name: 'Miscellaneous', description: 'Health probes and demo routes' }
   ],
   components: {
@@ -48,6 +49,46 @@ export const gatewayOpenApi = {
                 lineTotal: { type: 'number', nullable: true },
                 available: { type: 'boolean' }
               }
+            }
+          }
+        }
+      },
+      Order: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          userId: { type: 'string' },
+          status: {
+            type: 'string',
+            enum: ['PENDING', 'AWAITING_PAYMENT', 'PAID', 'FAILED', 'CANCELLED']
+          },
+          currency: { type: 'string' },
+          subtotalCents: { type: 'integer' },
+          totalCents: { type: 'integer' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                productId: { type: 'string' },
+                nameSnapshot: { type: 'string' },
+                unitPriceCents: { type: 'integer' },
+                quantity: { type: 'integer' },
+                lineTotalCents: { type: 'integer' }
+              }
+            }
+          },
+          payment: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              provider: { type: 'string' },
+              providerPaymentId: { type: 'string' },
+              status: { type: 'string', enum: ['PENDING', 'SUCCEEDED', 'FAILED'] },
+              amountCents: { type: 'integer' },
+              currency: { type: 'string' }
             }
           }
         }
@@ -338,6 +379,117 @@ export const gatewayOpenApi = {
         responses: {
           '200': { description: 'Updated cart' },
           '401': { description: 'Unauthorized' }
+        }
+      }
+    },
+    '/orders/checkout': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Create an order from the current cart and start payment',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '201': {
+            description: 'Order created (AWAITING_PAYMENT) with payment details',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    order: { $ref: '#/components/schemas/Order' },
+                    payment: {
+                      type: 'object',
+                      properties: {
+                        provider: { type: 'string' },
+                        providerPaymentId: { type: 'string' },
+                        clientSecret: { type: 'string', nullable: true },
+                        status: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '400': { description: 'Cart is empty' },
+          '401': { description: 'Unauthorized' },
+          '409': { description: 'A product in the cart is no longer available' },
+          '502': { description: 'Cart or products service unavailable' }
+        }
+      }
+    },
+    '/orders': {
+      get: {
+        tags: ['Orders'],
+        summary: 'List the current user orders',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Orders for the user',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    orders: { type: 'array', items: { $ref: '#/components/schemas/Order' } }
+                  }
+                }
+              }
+            }
+          },
+          '401': { description: 'Unauthorized' }
+        }
+      }
+    },
+    '/orders/{id}': {
+      parameters: [
+        { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+      ],
+      get: {
+        tags: ['Orders'],
+        summary: 'Get one of the current user orders',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Order detail',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Order' }
+              }
+            }
+          },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'Order not found' }
+        }
+      }
+    },
+    '/orders/{id}/payment/mock-confirm': {
+      parameters: [
+        { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+      ],
+      post: {
+        tags: ['Orders'],
+        summary: 'Mock payment confirmation (dev stand-in for the provider webhook)',
+        description: 'Only available when PAYMENT_PROVIDER=mock. Idempotent: confirming a paid order is a no-op.',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  outcome: { type: 'string', enum: ['success', 'failure'], default: 'success' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          '200': { description: 'Updated order' },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'Order not found (or not in mock mode)' },
+          '409': { description: 'Order cannot be confirmed from its current status' }
         }
       }
     },

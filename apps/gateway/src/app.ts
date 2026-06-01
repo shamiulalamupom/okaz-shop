@@ -17,6 +17,7 @@ import { securityHeadersMiddleware } from "./middleware/security-headers.middlew
 import { createAuthProxyRoutes } from "./modules/auth-proxy/auth-proxy.routes.js";
 import { createProductsProxyRoutes } from "./modules/products-proxy/products-proxy.routes.js";
 import { createCartProxyRoutes } from "./modules/cart-proxy/cart-proxy.routes.js";
+import { createOrdersProxyRoutes } from "./modules/orders-proxy/orders-proxy.routes.js";
 import { createDemoRoutes } from "./modules/demo/demo.routes.js";
 import { createHealthRoutes } from "./modules/health/health.routes.js";
 
@@ -59,6 +60,10 @@ gatewayApp.route(
 gatewayApp.route(
   "/cart",
   createCartProxyRoutes(gatewayConfig.cartServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/orders",
+  createOrdersProxyRoutes(gatewayConfig.ordersServiceUrl, gatewayConfig.jwt),
 );
 gatewayApp.route("/", createDemoRoutes(gatewayConfig.jwt));
 

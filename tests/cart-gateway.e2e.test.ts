@@ -4,6 +4,11 @@ const baseUrl = process.env.TEST_GATEWAY_URL ?? 'http://localhost:4000';
 
 const uniqueEmail = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
 
+// A unique source IP per login keeps the gateway login rate-limiter from
+// tripping when the whole suite runs together.
+const randomIp = () =>
+  `10.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+
 const waitForReady = async () => {
   for (let attempt = 1; attempt <= 60; attempt += 1) {
     try {
@@ -25,16 +30,18 @@ const authToken = async () => {
   const email = uniqueEmail('cart-user');
   const password = 'Password123';
 
+  const ip = randomIp();
+
   const registerResponse = await fetch(`${baseUrl}/auth/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': ip },
     body: JSON.stringify({ email, password })
   });
   expect(registerResponse.status).toBe(201);
 
   const loginResponse = await fetch(`${baseUrl}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': ip },
     body: JSON.stringify({ email, password })
   });
   expect(loginResponse.status).toBe(200);
