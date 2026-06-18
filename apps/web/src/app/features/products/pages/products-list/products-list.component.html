@@ -1,0 +1,101 @@
+<section class="mx-auto w-full max-w-6xl px-6 py-10">
+  <!-- Hero -->
+  <div class="mb-8 flex flex-col gap-1">
+    <h1 class="font-heading text-3xl font-semibold tracking-tight">Our products</h1>
+    <p class="text-sm text-muted-foreground">Fresh essentials, delivered simply to your door.</p>
+  </div>
+
+  <!-- Category filter (pills) -->
+  @if (categories().length > 1) {
+    <div class="mb-8 flex flex-wrap items-center gap-2">
+      @for (cat of categories(); track cat) {
+        <button
+          type="button"
+          (click)="selectedCategory.set(cat)"
+          [class]="
+            selectedCategory() === cat
+              ? 'inline-flex h-8 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all'
+              : 'inline-flex h-8 items-center rounded-full bg-muted px-4 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground'
+          "
+        >
+          {{ cat }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="flex flex-col gap-4 rounded-4xl bg-card p-4 shadow-md ring-1 ring-foreground/5">
+          <div class="h-40 w-full animate-pulse rounded-2xl bg-muted"></div>
+          <div class="h-4 w-2/3 animate-pulse rounded-2xl bg-muted"></div>
+          <div class="h-4 w-1/3 animate-pulse rounded-2xl bg-muted"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (errorMessage()) {
+    <div class="rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Empty -->
+  @else if (visibleProducts().length === 0) {
+    <div
+      class="flex flex-col items-center gap-2 rounded-4xl bg-card px-6 py-16 text-center shadow-md ring-1 ring-foreground/5"
+    >
+      <p class="font-heading text-base font-medium">No products yet</p>
+      <p class="text-sm text-muted-foreground">Products you add will appear here.</p>
+    </div>
+  }
+
+  <!-- Grid -->
+  @else {
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      @for (product of visibleProducts(); track product._id) {
+        <article
+          [routerLink]="['/products', product._id]"
+          class="group/card flex cursor-pointer flex-col overflow-hidden rounded-4xl bg-card text-card-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:shadow-lg active:translate-y-px dark:ring-foreground/10"
+        >
+          <!-- Thumbnail -->
+          <div class="flex h-44 items-center justify-center bg-accent">
+            <span class="font-heading text-5xl font-semibold text-primary">
+              {{ product.name.charAt(0).toUpperCase() }}
+            </span>
+          </div>
+
+          <!-- Body -->
+          <div class="flex flex-1 flex-col gap-1 p-5">
+            @if (product.category) {
+              <p class="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                {{ product.category }}
+              </p>
+            }
+            <h2 class="font-heading text-base font-medium">{{ product.name }}</h2>
+            @if (product.description) {
+              <p class="line-clamp-2 text-sm text-muted-foreground">{{ product.description }}</p>
+            }
+
+            <div class="mt-3 flex items-center justify-between">
+              <span class="font-mono text-lg font-semibold tabular-nums">
+                {{ product.price | currency: 'EUR' }}
+              </span>
+              <button
+                type="button"
+                (click)="$event.stopPropagation()"
+                class="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+              >
+                + Add
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

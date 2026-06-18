@@ -15,6 +15,7 @@ services:
       retries: 10
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./scripts/postgres-init:/docker-entrypoint-initdb.d:ro
 
   mongo:
     image: mongo:8.0
@@ -47,11 +48,18 @@ services:
         condition: service_healthy
       products:
         condition: service_healthy
+      stocks:
+        condition: service_healthy
+      orders:
+        condition: service_healthy
     environment:
       GATEWAY_PORT: 4000
       AUTH_SERVICE_URL: http://auth:4001
       PRODUCTS_SERVICE_URL: http://products:4002
+      STOCKS_SERVICE_URL: http://stocks:4003
+      ORDERS_SERVICE_URL: http://orders:4004
       GATEWAY_SERVICE_URL: http://gateway:4000
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
       AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-okaz-auth}
       AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}
@@ -71,6 +79,22 @@ services:
       interval: 30s
       timeout: 5s
       retries: 10
+
+  web:
+    build:
+      context: apps/web
+      dockerfile: Dockerfile
+    container_name: okaz-web
+    depends_on:
+      gateway:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
   auth:
     build:
@@ -125,6 +149,70 @@ services:
         [
           "CMD-SHELL",
           'node -e "fetch(''http://localhost:4002/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  stocks:
+    build:
+      context: .
+      dockerfile: apps/stocks/Dockerfile
+    container_name: okaz-stocks
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      STOCKS_PORT: 4003
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/okaz_stocks?schema=public
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
+      STOCKS_REQUEST_MAX_BYTES: ${STOCKS_REQUEST_MAX_BYTES:-4096}
+      NODE_ENV: development
+    command: sh -c "pnpm prisma:migrate:deploy && pnpm prisma:seed && pnpm start"
+    expose:
+      - "4003"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://localhost:4003/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  orders:
+    build:
+      context: .
+      dockerfile: apps/orders/Dockerfile
+    container_name: okaz-orders
+    depends_on:
+      postgres:
+        condition: service_healthy
+      stocks:
+        condition: service_healthy
+      products:
+        condition: service_healthy
+    environment:
+      ORDERS_PORT: 4004
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/okaz_orders?schema=public
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
+      AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-okaz-auth}
+      AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}
+      PRODUCTS_SERVICE_URL: http://products:4002
+      STOCKS_SERVICE_URL: http://stocks:4003
+      EVENTS_SINK_URL: http://gateway:4000
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
+      ORDERS_REQUEST_MAX_BYTES: ${ORDERS_REQUEST_MAX_BYTES:-8192}
+      NODE_ENV: development
+    command: sh -c "pnpm prisma:migrate:deploy && pnpm start"
+    expose:
+      - "4004"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://localhost:4004/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
       interval: 10s
       timeout: 5s

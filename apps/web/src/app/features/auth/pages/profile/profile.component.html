@@ -1,0 +1,71 @@
+<section class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
+  <!-- Page heading -->
+  <div class="flex flex-col gap-1">
+    <h1 class="font-heading text-2xl font-semibold tracking-tight">My account</h1>
+    <p class="text-sm text-muted-foreground">Your profile details and access level.</p>
+  </div>
+
+  @if (user(); as currentUser) {
+    <!-- Profile card -->
+    <div
+      class="flex flex-col gap-6 overflow-hidden rounded-4xl bg-card p-8 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+    >
+      <!-- Identity -->
+      <div class="flex items-center gap-5">
+        <div
+          class="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-2xl font-semibold text-primary-foreground shadow-md ring-1 ring-foreground/5"
+        >
+          {{ (currentUser.name || currentUser.email).charAt(0).toUpperCase() }}
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <p class="font-heading text-lg font-medium">{{ currentUser.name || 'Okaz member' }}</p>
+          <p class="text-sm text-muted-foreground">{{ currentUser.email }}</p>
+        </div>
+      </div>
+
+      <div class="h-px w-full bg-border"></div>
+
+      <!-- Roles -->
+      <div class="flex flex-col gap-2">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Roles</p>
+        <div class="flex flex-wrap items-center gap-2">
+          @for (role of currentUser.roles ?? []; track role) {
+            <span
+              class="inline-flex h-6 items-center justify-center rounded-3xl bg-secondary px-3 text-xs font-medium text-secondary-foreground"
+            >{{ role }}</span>
+          } @empty {
+            <span class="text-sm text-muted-foreground">No roles assigned.</span>
+          }
+        </div>
+      </div>
+
+      <!-- User id -->
+      <div class="flex flex-col gap-2">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">User ID</p>
+        <p class="font-mono text-sm text-muted-foreground">{{ currentUser.id }}</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3 pt-2">
+        <button
+          type="button"
+          (click)="logout()"
+          class="inline-flex h-10 items-center justify-center rounded-full bg-secondary px-5 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+        >
+          Log out
+        </button>
+      </div>
+    </div>
+  } @else {
+    <!-- Not signed in -->
+    <div
+      class="flex flex-col items-center gap-4 rounded-4xl bg-card p-10 text-center text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+    >
+      <p class="text-sm text-muted-foreground">You are not signed in.</p>
+      <a
+        routerLink="/auth/login"
+        class="inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px"
+      >Log in</a>
+    </div>
+  }
+</section>

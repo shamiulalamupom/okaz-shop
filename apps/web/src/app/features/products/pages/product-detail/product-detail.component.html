@@ -1,0 +1,91 @@
+<section class="mx-auto w-full max-w-6xl px-6 py-10">
+  <!-- Breadcrumb -->
+  <nav class="mb-6 flex items-center gap-1.5 text-xs text-muted-foreground">
+    <a routerLink="/products" class="font-medium text-primary transition-all hover:text-primary/80">Products</a>
+    @if (product(); as item) {
+      @if (item.category) {
+        <span>/</span><span>{{ item.category }}</span>
+      }
+      <span>/</span><span class="text-foreground">{{ item.name }}</span>
+    }
+  </nav>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div class="h-80 w-full animate-pulse rounded-4xl bg-muted"></div>
+      <div class="flex flex-col gap-4">
+        <div class="h-8 w-2/3 animate-pulse rounded-2xl bg-muted"></div>
+        <div class="h-6 w-1/3 animate-pulse rounded-2xl bg-muted"></div>
+        <div class="h-24 w-full animate-pulse rounded-2xl bg-muted"></div>
+      </div>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (errorMessage()) {
+    <div class="rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Detail -->
+  @else if (product(); as item) {
+    <div class="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
+      <!-- Visual -->
+      <div
+        class="flex min-h-80 items-center justify-center overflow-hidden rounded-4xl bg-accent shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+      >
+        <span class="font-heading text-[7rem] font-semibold text-primary">{{ displayInitial() }}</span>
+      </div>
+
+      <!-- Info card -->
+      <div
+        class="flex flex-col justify-center gap-5 rounded-4xl bg-card p-8 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+      >
+        @if (item.category) {
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-primary">{{ item.category }}</p>
+        }
+
+        <h1 class="font-heading text-3xl font-semibold tracking-tight">{{ item.name }}</h1>
+
+        <p class="font-mono text-3xl font-semibold tabular-nums">{{ item.price | currency: 'EUR' }}</p>
+
+        @if (item.description) {
+          <p class="text-sm leading-relaxed text-muted-foreground">{{ item.description }}</p>
+        }
+
+        <!-- Quantity + actions -->
+        <div class="mt-2 flex flex-wrap items-center gap-3">
+          <div class="inline-flex items-center rounded-full bg-muted p-1">
+            <button
+              type="button"
+              (click)="decreaseQty()"
+              class="flex size-8 items-center justify-center rounded-full text-lg transition-all hover:bg-secondary active:translate-y-px"
+            >−</button>
+            <span class="w-8 text-center font-mono text-sm font-semibold tabular-nums">{{ qty }}</span>
+            <button
+              type="button"
+              (click)="increaseQty()"
+              class="flex size-8 items-center justify-center rounded-full text-lg transition-all hover:bg-secondary active:translate-y-px"
+            >+</button>
+          </div>
+
+          <button
+            type="button"
+            class="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          >
+            Add to cart
+          </button>
+        </div>
+
+        <!-- Reassurance -->
+        <div class="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+          <span>Free delivery over €30</span>
+          <span>Easy returns</span>
+          <span>Same-day dispatch</span>
+        </div>
+      </div>
+    </div>
+  }
+</section>

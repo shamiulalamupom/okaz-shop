@@ -1,0 +1,124 @@
+/* ============================================================================
+ * Okaz — Dream design system (Tailwind v4), teal brand.
+ * Heavy radius, soft shadow + hairline ring elevation, opacity hovers,
+ * 3px brand focus ring. Brand hue lives in the teal ramp below.
+ * ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-sans);
+  --color-tertiary: var(--tertiary);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Heavy radius scale, base 10px. 4xl/3xl/2xl are the signature look. */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Teal/aquamarine brand ramp — matches the existing #4ddbb8 / #0f6e56 palette.
+ * Rebrand by changing the ramp; --brand drives primary, ring and selection. */
+:root {
+  --teal-50: #f0fdfa;
+  --teal-100: #ccfbf1;
+  --teal-200: #99f6e4;
+  --teal-300: #5eead4;
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+  --teal-700: #0f766e;
+  --teal-800: #115e59;
+  --teal-900: #134e4a;
+  --teal-950: #042f2e;
+
+  --brand: var(--teal-600);
+  --ink: #0f2e29;
+  --canvas: #f4fbf9;
+  --font-sans: 'Poppins', sans-serif;
+
+  --background: var(--canvas);
+  --foreground: #0a1614;
+  --card: #ffffff;
+  --card-foreground: #0a1614;
+  --popover: #ffffff;
+  --popover-foreground: #0a1614;
+  --primary: var(--brand);
+  --tertiary: var(--teal-400);
+  --primary-foreground: #ffffff;
+  --secondary: #e6f5f1;
+  --secondary-foreground: var(--ink);
+  --muted: #e9f4f1;
+  --muted-foreground: #5b7a73;
+  --accent: var(--teal-50);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.55 0.2 27);
+  --border: #d8ebe6;
+  --input: #e9f4f1;
+  --ring: var(--brand);
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: #07110f;
+  --foreground: #ecfdf8;
+  --card: #0f1f1c;
+  --card-foreground: #ecfdf8;
+  --popover: #0f1f1c;
+  --popover-foreground: #ecfdf8;
+  --primary: var(--teal-500);
+  --tertiary: var(--teal-300);
+  --primary-foreground: #052420;
+  --secondary: #14302b;
+  --secondary-foreground: #ecfdf8;
+  --muted: #14302b;
+  --muted-foreground: #8fb3ab;
+  --accent: #14302b;
+  --accent-foreground: #ecfdf8;
+  --destructive: oklch(0.6 0.19 25);
+  --border: #1d3b35;
+  --input: #1d3b35;
+  --ring: var(--teal-500);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    margin: 0;
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  ::selection {
+    background: var(--brand);
+    color: #ffffff;
+  }
+}

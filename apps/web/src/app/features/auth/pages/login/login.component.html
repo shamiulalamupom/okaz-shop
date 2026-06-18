@@ -1,0 +1,66 @@
+<section class="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-12 sm:py-20">
+  <!-- Heading -->
+  <div class="flex flex-col gap-1.5 text-center">
+    <h1 class="font-heading text-2xl font-semibold tracking-tight">Welcome back</h1>
+    <p class="text-sm text-muted-foreground">Log into your Okaz account to continue.</p>
+  </div>
+
+  <!-- Card -->
+  <div
+    class="flex flex-col gap-6 overflow-hidden rounded-4xl bg-card p-8 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+  >
+    <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="submit()">
+      <!-- Email -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium" for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          class="h-11 w-full rounded-2xl bg-input px-4 text-sm transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+        />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <p class="text-xs text-destructive">Enter a valid email.</p>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium" for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          class="h-11 w-full rounded-2xl bg-input px-4 text-sm transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p class="text-xs text-destructive">Password must be at least 6 characters.</p>
+        }
+      </div>
+
+      <!-- Backend error -->
+      @if (errorMessage()) {
+        <div class="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [disabled]="isSubmitting()"
+        class="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+      >
+        {{ isSubmitting() ? 'Logging in…' : 'Log in' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Register link -->
+  <p class="text-center text-sm text-muted-foreground">
+    Don't have an account?
+    <a routerLink="/auth/register" class="font-medium text-primary transition-all hover:text-primary/80">Sign up</a>
+  </p>
+</section>

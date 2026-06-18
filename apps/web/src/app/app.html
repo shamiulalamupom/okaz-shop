@@ -1,0 +1,67 @@
+<div class="flex min-h-screen flex-col bg-background text-foreground">
+  <!-- Global header -->
+  <header
+    class="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/70"
+  >
+    <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
+      <!-- Brand -->
+      <a routerLink="/" class="flex items-center gap-2 transition-all hover:opacity-80">
+        <span
+          class="flex size-8 items-center justify-center rounded-2xl bg-primary text-sm font-bold text-primary-foreground shadow-md ring-1 ring-foreground/5"
+        >O</span>
+        <span class="font-heading text-lg font-semibold tracking-tight">Okaz</span>
+      </a>
+
+      <!-- Primary nav -->
+      <nav class="hidden items-center gap-1 sm:flex">
+        <a
+          routerLink="/products"
+          routerLinkActive="bg-accent text-accent-foreground"
+          class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+        >Products</a>
+        @if (isAuthenticated()) {
+          <a
+            routerLink="/products/new"
+            routerLinkActive="bg-accent text-accent-foreground"
+            class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          >Add product</a>
+          <a
+            routerLink="/profile"
+            routerLinkActive="bg-accent text-accent-foreground"
+            class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          >Account</a>
+        }
+      </nav>
+
+      <!-- Auth actions -->
+      <div class="flex items-center gap-2">
+        @if (isAuthenticated()) {
+          <span class="hidden max-w-40 truncate text-sm text-muted-foreground md:inline">
+            {{ user()?.email }}
+          </span>
+          <button
+            type="button"
+            (click)="logout()"
+            class="inline-flex h-9 items-center justify-center rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          >
+            Log out
+          </button>
+        } @else {
+          <a
+            routerLink="/auth/login"
+            class="inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          >Log in</a>
+          <a
+            routerLink="/auth/register"
+            class="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          >Sign up</a>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Routed content -->
+  <main class="flex-1">
+    <router-outlet />
+  </main>
+</div>
