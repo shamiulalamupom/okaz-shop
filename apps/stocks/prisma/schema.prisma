@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../prisma/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  city      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  stocks    Stock[]
+}
+
+model Stock {
+  id        String   @id @default(cuid())
+  productId String
+  storeId   String
+  quantity  Int      @default(0)
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, storeId])
+  @@index([productId])
+  @@index([storeId])
+}

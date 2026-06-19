@@ -66,9 +66,41 @@ importers:
       hono:
         specifier: ^4.8.5
         version: 4.12.5
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
       zod:
         specifier: ^3.25.76
         version: 3.25.76
+    devDependencies:
+      '@types/ws':
+        specifier: ^8.5.12
+        version: 8.18.1
+
+  apps/orders:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.17.1
+        version: 1.19.11(hono@4.12.5)
+      '@hono/swagger-ui':
+        specifier: ^0.5.2
+        version: 0.5.3(hono@4.12.5)
+      '@okaz/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@prisma/client':
+        specifier: ^5.22.0
+        version: 5.22.0(prisma@5.22.0)
+      hono:
+        specifier: ^4.8.5
+        version: 4.12.5
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      prisma:
+        specifier: ^5.22.0
+        version: 5.22.0
 
   apps/products:
     dependencies:
@@ -100,6 +132,31 @@ importers:
       nodemon:
         specifier: ^3.0.1
         version: 3.1.14
+
+  apps/stocks:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.17.1
+        version: 1.19.11(hono@4.12.5)
+      '@hono/swagger-ui':
+        specifier: ^0.5.2
+        version: 0.5.3(hono@4.12.5)
+      '@okaz/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@prisma/client':
+        specifier: ^5.22.0
+        version: 5.22.0(prisma@5.22.0)
+      hono:
+        specifier: ^4.8.5
+        version: 4.12.5
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      prisma:
+        specifier: ^5.22.0
+        version: 5.22.0
 
   packages/shared:
     dependencies:
@@ -712,6 +769,9 @@ packages:
 
   '@types/whatwg-url@8.2.2':
     resolution: {integrity: sha512-FtQu10RWgn3D9U4aazdwIE2yzphmTJREDqNdODHrbrZmmMqI0vMheC/6NE/J1Yveaj8H+ela+YwWTjq5PGmuhA==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@vitest/expect@2.1.9':
     resolution: {integrity: sha512-UJCIkTBenHeKT1TTlKMJWy1laZewsRIzYighyYiJKZreqtdxSos/S1t+ktRMQWu2CKqaarrkeszJx1cgC5tGZw==}
@@ -1522,6 +1582,18 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
+  ws@8.21.0:
+    resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   yaml@2.0.0-1:
     resolution: {integrity: sha512-W7h5dEhywMKenDJh2iX/LABkbFnBxasD27oyXWDS/feDsxiw0dD5ncXdYXgkvAsXIY2MpW/ZKkr9IU30DBdMNQ==}
     engines: {node: '>= 6'}
@@ -1933,6 +2005,10 @@ snapshots:
     dependencies:
       '@types/node': 22.19.13
       '@types/webidl-conversions': 7.0.3
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 22.19.13
 
   '@vitest/expect@2.1.9':
     dependencies:
@@ -2813,6 +2889,8 @@ snapshots:
       stackback: 0.0.2
 
   wrappy@1.0.2: {}
+
+  ws@8.21.0: {}
 
   yaml@2.0.0-1: {}
 

@@ -7,6 +7,9 @@ export const gatewayOpenApi = {
   tags: [
     { name: 'Auth', description: 'Authentication routes proxied to the auth service' },
     { name: 'Products', description: 'Product routes proxied to the products service' },
+    { name: 'Stores', description: 'Store routes proxied to the stocks service' },
+    { name: 'Stocks', description: 'Stock routes proxied to the stocks service' },
+    { name: 'Orders', description: 'Order routes proxied to the orders service' },
     { name: 'Miscellaneous', description: 'Health probes and demo routes' }
   ],
   components: {
@@ -239,6 +242,101 @@ export const gatewayOpenApi = {
           '200': { description: 'Accessible by ADMIN role' },
           '401': { description: 'Unauthorized' },
           '403': { description: 'Forbidden' }
+        }
+      }
+    },
+    '/stores': {
+      get: {
+        tags: ['Stores'],
+        summary: 'List stores (authenticated)',
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'List of stores' }, '401': { description: 'Unauthorized' } }
+      },
+      post: {
+        tags: ['Stores'],
+        summary: 'Create a store (STORE_MANAGER / ADMIN)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '201': { description: 'Store created' },
+          '401': { description: 'Unauthorized' },
+          '403': { description: 'Forbidden' }
+        }
+      }
+    },
+    '/stocks': {
+      get: {
+        tags: ['Stocks'],
+        summary: 'List stock entries (authenticated; filter by productId / storeId)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'productId', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'storeId', in: 'query', required: false, schema: { type: 'string' } }
+        ],
+        responses: { '200': { description: 'List of stock entries' }, '401': { description: 'Unauthorized' } }
+      },
+      post: {
+        tags: ['Stocks'],
+        summary: 'Set stock quantity for a product in a store (STORE_MANAGER / ADMIN)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Stock set' },
+          '401': { description: 'Unauthorized' },
+          '403': { description: 'Forbidden' }
+        }
+      }
+    },
+    '/stocks/{productId}': {
+      get: {
+        tags: ['Stocks'],
+        summary: 'Aggregated stock for a product across stores (authenticated)',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'productId', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: { '200': { description: 'Aggregated stock' }, '401': { description: 'Unauthorized' } }
+      }
+    },
+    '/orders': {
+      get: {
+        tags: ['Orders'],
+        summary: "List the authenticated user's orders",
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'List of orders' }, '401': { description: 'Unauthorized' } }
+      },
+      post: {
+        tags: ['Orders'],
+        summary: 'Create an order (validated against stock in real time)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '201': { description: 'Order created and validated' },
+          '400': { description: 'Validation error or unknown product' },
+          '401': { description: 'Unauthorized' },
+          '409': { description: 'Order rejected (insufficient stock)' }
+        }
+      }
+    },
+    '/orders/{id}': {
+      get: {
+        tags: ['Orders'],
+        summary: 'Get an order by id',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'Order found' },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'Order not found' }
+        }
+      }
+    },
+    '/orders/{id}/cancel': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Cancel an order and release reserved stock',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'Order cancelled' },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'Order not found' },
+          '409': { description: 'Order cannot be cancelled' }
         }
       }
     }

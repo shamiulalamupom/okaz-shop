@@ -9,6 +9,9 @@ const envSchema = z.object({
   GATEWAY_SERVICE_URL: z.string().url(),
   AUTH_SERVICE_URL: z.string().url(),
   PRODUCTS_SERVICE_URL: z.string().url(),
+  STOCKS_SERVICE_URL: z.string().url(),
+  ORDERS_SERVICE_URL: z.string().url(),
+  INTERNAL_SERVICE_SECRET: z.string().min(16),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
   LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce
@@ -31,6 +34,9 @@ export const gatewayConfig = {
   gatewayServiceUrl: parsed.GATEWAY_SERVICE_URL,
   authServiceUrl: parsed.AUTH_SERVICE_URL,
   productsServiceUrl: parsed.PRODUCTS_SERVICE_URL,
+  stocksServiceUrl: parsed.STOCKS_SERVICE_URL,
+  ordersServiceUrl: parsed.ORDERS_SERVICE_URL,
+  internalServiceSecret: parsed.INTERNAL_SERVICE_SECRET,
   authRequestMaxBytes: parsed.AUTH_REQUEST_MAX_BYTES,
   corsOrigin: parsed.CORS_ORIGIN,
   jwt: {

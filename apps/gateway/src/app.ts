@@ -16,6 +16,9 @@ import { createLoginRateLimitMiddleware } from "./middleware/rate-limit.middlewa
 import { securityHeadersMiddleware } from "./middleware/security-headers.middleware.js";
 import { createAuthProxyRoutes } from "./modules/auth-proxy/auth-proxy.routes.js";
 import { createProductsProxyRoutes } from "./modules/products-proxy/products-proxy.routes.js";
+import { createStocksProxyRoutes } from "./modules/stocks-proxy/stocks-proxy.routes.js";
+import { createOrdersProxyRoutes } from "./modules/orders-proxy/orders-proxy.routes.js";
+import { createInternalRoutes } from "./modules/internal/internal.routes.js";
 import { createDemoRoutes } from "./modules/demo/demo.routes.js";
 import { createHealthRoutes } from "./modules/health/health.routes.js";
 
@@ -54,6 +57,22 @@ gatewayApp.route("/auth", createAuthProxyRoutes(gatewayConfig.authServiceUrl));
 gatewayApp.route(
   "/products",
   createProductsProxyRoutes(gatewayConfig.productsServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/stocks",
+  createStocksProxyRoutes(gatewayConfig.stocksServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/stores",
+  createStocksProxyRoutes(gatewayConfig.stocksServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/orders",
+  createOrdersProxyRoutes(gatewayConfig.ordersServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/internal",
+  createInternalRoutes(gatewayConfig.internalServiceSecret),
 );
 gatewayApp.route("/", createDemoRoutes(gatewayConfig.jwt));
 

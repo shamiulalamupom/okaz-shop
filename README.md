@@ -1,21 +1,61 @@
 # okaz-backend
 
-Monorepo for a Hono-based API Gateway + Auth service with Prisma/PostgreSQL.
+Marketplace platform built as a **microservices architecture** behind a single **API Gateway**, with an Angular frontend. Inspired by the Keyce B3 annual project brief (Amazon-like marketplace).
 
-## Stack
+## Architecture
 
-- Node.js + TypeScript
-- Hono
-- Prisma + PostgreSQL
-- JWT auth (Bearer)
-- Argon2id password hashing
-- Vitest e2e tests
+```
+                         ┌────────────────────────┐
+   Angular frontend ───▶ │   API Gateway (:4000)  │  ◀── single entry point
+   (REST + WebSocket)    │  JWT, roles, CORS,     │
+                         │  rate-limit, headers,  │
+                         │  proxy, WS event hub   │
+                         └───────────┬────────────┘
+            ┌────────────────┬───────┴────────┬─────────────────┐
+            ▼                ▼                ▼                  ▼
+     Auth (:4001)    Products (:4002)   Stocks (:4003)    Orders (:4004)
+     PostgreSQL        MongoDB           PostgreSQL         PostgreSQL
+     users/roles/JWT   catalogue         qty/product/store  create + validate
+```
 
-## Monorepo Layout
+- The frontend **only** talks to the gateway. Microservices are not exposed publicly.
+- Microservices map to **functional domains** (auth, products, stocks, orders), not to stores.
+- Critical order events are pushed to the frontend in **real time over WebSocket** via the gateway.
 
-- `apps/gateway` - public API entrypoint, auth middleware, rate limiting, proxying
-- `apps/auth` - registration/login/me, Prisma user store
-- `packages/shared` - shared env, logger, jwt, middleware, types, error helpers
+## Microservices
+
+| Service     | Port | Stack                | Data                | Responsibility |
+|-------------|------|----------------------|---------------------|----------------|
+| `gateway`   | 4000 | Hono / TS            | —                   | Single entry point: auth, roles, rate-limit, security headers, CORS, request proxying, WebSocket event hub |
+| `auth`      | 4001 | Hono / TS / Prisma   | PostgreSQL          | Users, roles, JWT issuance, Argon2id password hashing |
+| `products`  | 4002 | Express / JS / Mongoose | MongoDB          | Global product catalogue |
+| `stocks`    | 4003 | Hono / TS / Prisma   | PostgreSQL          | Stores + available quantity per product **per store**; atomic stock reservation |
+| `orders`    | 4004 | Hono / TS / Prisma   | PostgreSQL          | Order creation + validation against stock; cancellation/restock |
+
+`packages/shared` provides shared env loading, structured logging (with secret redaction), JWT sign/verify, request helpers, error helpers and middleware.
+
+## Order flow (stock validation)
+
+1. An authenticated user POSTs `/orders` with line items (`productId`, `storeId`, `quantity`).
+2. Orders fetches each product's price from the **products** service.
+3. The order is persisted as `PENDING`, then orders calls the **stocks** service's internal `reserve` endpoint, which **atomically** checks and decrements every line in a single DB transaction.
+4. If all lines have sufficient stock → order becomes `VALIDATED`; otherwise → `REJECTED` (no stock is consumed).
+5. Each transition is published to the gateway, which broadcasts it over WebSocket to the owning user.
+
+## Real-time events
+
+- Clients open `ws://localhost:4000/ws?token=<JWT>`. The token is verified before the socket is accepted.
+- Microservices POST events to the gateway's secret-guarded `/internal/events`; the gateway fans them out to the relevant user's sockets.
+- Event types: `order.created`, `order.validated`, `order.rejected`, `order.cancelled`.
+
+## Security
+
+- Passwords hashed with **Argon2id** (never stored or logged in clear) — GDPR/CNIL-safe.
+- **JWT** (HS256, jose) verified for signature, `exp`, `iss`, `aud`. Verified both at the gateway and inside the orders service (defense in depth).
+- **Role-based access**: writing stocks/stores requires `STORE_MANAGER` or `ADMIN`; ordering requires an authenticated user; an admin demo route requires `ADMIN`.
+- Gateway: CORS, security headers, login rate limiting, request payload size limits, correlation IDs (`X-Request-Id`).
+- Internal service-to-service routes (`/internal/*`) are guarded by a shared `INTERNAL_SERVICE_SECRET` and are never proxied to the public.
+- Structured JSON logs with automatic redaction of sensitive fields.
 
 ## Prerequisites
 
@@ -23,55 +63,72 @@ Monorepo for a Hono-based API Gateway + Auth service with Prisma/PostgreSQL.
 - pnpm 10+
 - Docker + Docker Compose
 
-## Setup
+## Run everything with Docker (recommended)
 
-1. Copy `.env.example` to `.env` and set values.
-2. Install dependencies:
-   - `pnpm install`
-3. Start PostgreSQL and services:
-   - `docker compose up --build -d`
+```bash
+cp .env.example .env          # then edit secrets (see below)
+docker compose up --build -d
+```
 
-## Prisma Migration + Seed
+This builds and starts PostgreSQL, MongoDB, and all five services. On first start (fresh Postgres volume) the `okaz_auth`, `okaz_stocks` and `okaz_orders` databases are created automatically, Prisma migrations are applied, and the stocks service seeds a few demo stores.
 
-Run against local containerized PostgreSQL:
+> Set strong values in `.env` for `AUTH_JWT_SECRET` (≥32 chars) and `INTERNAL_SERVICE_SECRET` (≥16 chars). These must match across the gateway, orders and stocks services (the compose file already wires them from the same variables).
 
-- `pnpm prisma:migrate`
-- `pnpm prisma:seed`
+Seed the admin user and some demo products:
 
-Dev seed creates/upserts one admin account (dev-only fixture):
+```bash
+docker compose exec auth pnpm prisma:seed     # admin@example.com / Admin1234!
+pnpm seed:products:api                         # seeds catalogue via the gateway
+```
 
-- email: `admin@example.com`
-- password: `Admin1234!`
+## Service URLs
 
-Do not run seed in production.
+| What            | URL |
+|-----------------|-----|
+| Frontend (web)  | http://localhost:4200 |
+| Gateway         | http://localhost:4000 |
+| Gateway docs    | http://localhost:4000/docs |
+| Auth docs       | http://localhost:4001/docs |
+| Products docs   | http://localhost:4002/api-docs |
+| Stocks docs     | http://localhost:4003/docs |
+| Orders docs     | http://localhost:4004/docs |
+| WebSocket       | ws://localhost:4000/ws?token=&lt;JWT&gt; |
 
-## Local App URLs
+All services expose `GET /live` and `GET /ready`.
 
-- Gateway: `http://localhost:4000`
-- Gateway docs: `http://localhost:4000/docs`
-- Auth service: `http://localhost:4001`
-- Auth docs: `http://localhost:4001/docs`
+## Public API (through the gateway)
 
-## Health
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| POST | `/auth/register` | public | |
+| POST | `/auth/login` | public | returns `accessToken` |
+| GET  | `/auth/me` | JWT | |
+| GET  | `/products` `/products/:id` | public | catalogue browsing |
+| POST/PUT/DELETE | `/products...` | JWT | |
+| GET  | `/stores` | JWT | |
+| POST | `/stores` | STORE_MANAGER/ADMIN | |
+| GET  | `/stocks?productId=&storeId=` | JWT | |
+| GET  | `/stocks/:productId` | JWT | aggregated across stores |
+| POST | `/stocks` `/stocks/adjust` | STORE_MANAGER/ADMIN | set / adjust quantity |
+| GET  | `/orders` | JWT | current user's orders |
+| POST | `/orders` | JWT | create + validate against stock |
+| GET  | `/orders/:id` | JWT | |
+| POST | `/orders/:id/cancel` | JWT | releases reserved stock |
 
-Both apps expose:
+## Local development (without Docker)
 
-- `GET /live`
-- `GET /ready`
+Each service can run individually with `pnpm --filter @okaz/<service> dev`. You need PostgreSQL and MongoDB available and a `.env` per the variables in `.env.example`. Generate Prisma clients first with `pnpm --filter @okaz/<service> prisma:generate`.
 
 ## Tests
 
-Integration tests assume services are running (typically via `docker compose up`).
+```bash
+pnpm test
+```
 
-- `pnpm test`
+## Frontend
 
-## Security Baseline
+The Angular frontend lives in `apps/web` (authentication and catalogue today; stock view, order creation and real-time order tracking are in progress). It talks only to the gateway (`http://localhost:4000`).
 
-- Password hashing with Argon2id
-- JWT verified with signature, exp, iss, aud checks
-- Correlation ID (`X-Request-Id`) generated at gateway and propagated
-- Login rate limiting at gateway (`/auth/login`)
-- Auth request payload size limit (`AUTH_REQUEST_MAX_BYTES`, default `1024`)
-- CORS enabled only at gateway
-- Gateway security headers enabled
-- Structured JSON logs with sensitive redaction
+Run it as part of the Docker stack — `docker compose up --build -d` now also builds and serves the frontend (static SPA via nginx) at **http://localhost:4200**. The `web` container is built from `apps/web/Dockerfile` (multi-stage: `ng build` → nginx) and its origin (`http://localhost:4200`) matches the gateway's default `CORS_ORIGIN`.
+
+For local development without Docker, use `cd apps/web && npm install && npm start` (`ng serve` on `:4200`).
