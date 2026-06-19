@@ -55,36 +55,95 @@
           <p class="text-sm leading-relaxed text-muted-foreground">{{ item.description }}</p>
         }
 
-        <!-- Quantity + actions -->
-        <div class="mt-2 flex flex-wrap items-center gap-3">
-          <div class="inline-flex items-center rounded-full bg-muted p-1">
-            <button
-              type="button"
-              (click)="decreaseQty()"
-              class="flex size-8 items-center justify-center rounded-full text-lg transition-all hover:bg-secondary active:translate-y-px"
-            >−</button>
-            <span class="w-8 text-center font-mono text-sm font-semibold tabular-nums">{{ qty }}</span>
-            <button
-              type="button"
-              (click)="increaseQty()"
-              class="flex size-8 items-center justify-center rounded-full text-lg transition-all hover:bg-secondary active:translate-y-px"
-            >+</button>
+        <!-- Availability + ordering (requires login) -->
+        @if (!isAuthenticated()) {
+          <div class="flex items-center justify-between rounded-2xl bg-accent px-4 py-3 text-sm">
+            <span class="text-accent-foreground">Log in to see store availability and place an order.</span>
+            <a routerLink="/auth/login" class="font-medium text-primary transition-all hover:text-primary/80">Log in →</a>
+          </div>
+        } @else if (availabilityError()) {
+          <p class="text-sm text-muted-foreground">Availability is unavailable right now.</p>
+        } @else if (storeStocks().length === 0) {
+          <p class="text-sm text-muted-foreground">Loading availability…</p>
+        } @else {
+          <!-- Store / stock selector -->
+          <div class="flex flex-col gap-2">
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Store availability</p>
+            <div class="flex flex-wrap gap-2">
+              @for (entry of storeStocks(); track entry.storeId) {
+                <button
+                  type="button"
+                  (click)="selectStore(entry.storeId)"
+                  [disabled]="entry.quantity === 0"
+                  [class]="
+                    selectedStoreId() === entry.storeId
+                      ? 'inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30'
+                      : 'inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-40'
+                  "
+                >
+                  {{ entry.storeName }}
+                  <span class="font-mono text-xs tabular-nums opacity-80">{{ entry.quantity }} in stock</span>
+                </button>
+              }
+            </div>
           </div>
 
-          <button
-            type="button"
-            class="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-          >
-            Add to cart
-          </button>
-        </div>
+          <!-- Quantity + add to cart -->
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            <div class="inline-flex items-center rounded-full bg-muted p-1">
+              <button
+                type="button"
+                (click)="decreaseQty()"
+                class="flex size-8 items-center justify-center rounded-full text-lg transition-all hover:bg-secondary active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+              >−</button>
+              <span class="w-8 text-center font-mono text-sm font-semibold tabular-nums">{{ qty() }}</span>
+              <button
+                type="button"
+                (click)="increaseQty()"
+                [disabled]="qty() >= selectedStock()"
+                class="flex size-8 items-center justify-center rounded-full text-lg transition-all hover:bg-secondary active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-40"
+              >+</button>
+            </div>
 
-        <!-- Reassurance -->
-        <div class="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
-          <span>Free delivery over €30</span>
-          <span>Easy returns</span>
-          <span>Same-day dispatch</span>
-        </div>
+            <button
+              type="button"
+              (click)="addToCart()"
+              [disabled]="selectedStock() === 0"
+              class="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50"
+            >
+              {{ selectedStock() === 0 ? 'Out of stock' : 'Add to cart' }}
+            </button>
+          </div>
+
+          <!-- Added feedback -->
+          @if (addedToCart()) {
+            <div class="flex items-center justify-between rounded-2xl bg-accent px-4 py-3 text-sm">
+              <span class="text-accent-foreground">Added to your cart.</span>
+              <a routerLink="/cart" class="font-medium text-primary transition-all hover:text-primary/80">View cart →</a>
+            </div>
+          }
+        }
+
+        <!-- Manager actions -->
+        @if (canManage()) {
+          <div class="mt-2 flex items-center gap-3 border-t border-border pt-4">
+            <button
+              type="button"
+              (click)="deleteProduct()"
+              [disabled]="isDeleting()"
+              class="inline-flex h-9 items-center justify-center rounded-full bg-destructive/10 px-4 text-sm font-medium text-destructive transition-all hover:bg-destructive/20 active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+            >
+              {{ isDeleting() ? 'Deleting…' : confirmDelete() ? 'Click again to confirm' : 'Delete product' }}
+            </button>
+            @if (confirmDelete() && !isDeleting()) {
+              <button
+                type="button"
+                (click)="confirmDelete.set(false)"
+                class="text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
+              >Cancel</button>
+            }
+          </div>
+        }
       </div>
     </div>
   }

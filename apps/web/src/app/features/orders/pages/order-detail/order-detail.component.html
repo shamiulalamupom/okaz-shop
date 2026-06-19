@@ -1,0 +1,78 @@
+<section class="mx-auto w-full max-w-2xl px-6 py-10">
+  <!-- Breadcrumb -->
+  <nav class="mb-6 flex items-center gap-1.5 text-xs text-muted-foreground">
+    <a routerLink="/orders" class="font-medium text-primary transition-all hover:text-primary/80">Orders</a>
+    <span>/</span><span class="text-foreground">Order detail</span>
+  </nav>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="flex flex-col gap-4">
+      <div class="h-10 w-1/2 animate-pulse rounded-2xl bg-muted"></div>
+      <div class="h-40 w-full animate-pulse rounded-4xl bg-muted"></div>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (errorMessage()) {
+    <div class="rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">{{ errorMessage() }}</div>
+  }
+
+  <!-- Detail -->
+  @else if (order(); as item) {
+    <div
+      class="flex flex-col gap-6 rounded-4xl bg-card p-8 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+    >
+      <!-- Header -->
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col gap-1">
+          <p class="font-mono text-xs text-muted-foreground">#{{ item.id }}</p>
+          <p class="text-sm text-muted-foreground">{{ item.createdAt | date: 'medium' }}</p>
+        </div>
+        <span
+          class="inline-flex h-6 items-center rounded-3xl px-3 text-xs font-semibold uppercase tracking-wide"
+          [class]="statusClass(item.status)"
+        >{{ item.status }}</span>
+      </div>
+
+      @if (item.reason) {
+        <div class="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ item.reason }}</div>
+      }
+
+      <div class="h-px w-full bg-border"></div>
+
+      <!-- Items -->
+      <div class="flex flex-col gap-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Items</p>
+        @for (line of item.items; track line.id ?? line.productId + line.storeId) {
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-muted-foreground">
+              <span class="font-mono text-xs">{{ line.productId.slice(-6) }}</span>
+              · qty {{ line.quantity }}
+            </span>
+            <span class="font-mono tabular-nums">{{ line.unitPrice * line.quantity | currency: 'EUR' }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="h-px w-full bg-border"></div>
+
+      <!-- Total + actions -->
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-muted-foreground">Total</span>
+        <span class="font-mono text-2xl font-semibold tabular-nums">{{ item.total | currency: 'EUR' }}</span>
+      </div>
+
+      @if (item.status === 'VALIDATED' || item.status === 'PENDING') {
+        <button
+          type="button"
+          (click)="cancel()"
+          [disabled]="isCancelling()"
+          class="inline-flex h-11 items-center justify-center rounded-full bg-destructive/10 px-5 text-sm font-medium text-destructive transition-all hover:bg-destructive/20 active:translate-y-px disabled:pointer-events-none disabled:opacity-60"
+        >
+          {{ isCancelling() ? 'Cancelling…' : 'Cancel order' }}
+        </button>
+      }
+    </div>
+  }
+</section>

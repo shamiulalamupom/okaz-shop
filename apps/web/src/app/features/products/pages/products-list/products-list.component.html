@@ -14,8 +14,8 @@
           (click)="selectedCategory.set(cat)"
           [class]="
             selectedCategory() === cat
-              ? 'inline-flex h-8 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all'
-              : 'inline-flex h-8 items-center rounded-full bg-muted px-4 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground'
+              ? 'inline-flex h-8 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30'
+              : 'inline-flex h-8 items-center rounded-full bg-muted px-4 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30'
           "
         >
           {{ cat }}
@@ -87,10 +87,11 @@
               </span>
               <button
                 type="button"
-                (click)="$event.stopPropagation()"
-                class="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                (click)="quickAdd(product, $event)"
+                [disabled]="addState()[product._id] === 'busy'"
+                class="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
               >
-                + Add
+                {{ addLabel(product._id) }}
               </button>
             </div>
           </div>

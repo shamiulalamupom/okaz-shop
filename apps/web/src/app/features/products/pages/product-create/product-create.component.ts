@@ -1,9 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 
+import { Product } from '../../../../core/products/product.models';
 import { ProductsService } from '../../../../core/products/products.service';
+import { Store } from '../../../../core/stocks/stock.models';
+import { StocksService } from '../../../../core/stocks/stocks.service';
 
 @Component({
   selector: 'app-product-create',
@@ -13,10 +16,15 @@ import { ProductsService } from '../../../../core/products/products.service';
 export class ProductCreateComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly productsService = inject(ProductsService);
+  private readonly stocksService = inject(StocksService);
   private readonly router = inject(Router);
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
+
+  readonly stores = signal<Store[]>([]);
+  // Initial stock quantity per storeId (0 = none).
+  readonly stockByStore = signal<Record<string, number>>({});
 
   readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -24,6 +32,24 @@ export class ProductCreateComponent {
     price: [0, [Validators.required, Validators.min(0.01)]],
     category: [''],
   });
+
+  constructor() {
+    this.stocksService.getStores().subscribe({
+      next: (stores) => this.stores.set(stores),
+      error: () => {
+        /* stock is optional; ignore if stores can't be loaded */
+      },
+    });
+  }
+
+  stockFor(storeId: string): number {
+    return this.stockByStore()[storeId] ?? 0;
+  }
+
+  setStock(storeId: string, value: string) {
+    const quantity = Math.max(0, Math.floor(Number(value) || 0));
+    this.stockByStore.update((state) => ({ ...state, [storeId]: quantity }));
+  }
 
   submit() {
     if (this.form.invalid) {
@@ -42,16 +68,36 @@ export class ProductCreateComponent {
     this.errorMessage.set('');
     this.isSubmitting.set(true);
 
-    this.productsService
-      .createProduct(payload)
+    this.productsService.createProduct(payload).subscribe({
+      next: (product) => this.applyInitialStock(product),
+      error: (error) => {
+        this.isSubmitting.set(false);
+        this.errorMessage.set(
+          error?.error?.message ?? error?.error?.error ?? 'Could not create the product.',
+        );
+      },
+    });
+  }
+
+  private applyInitialStock(product: Product) {
+    const entries = Object.entries(this.stockByStore()).filter(([, quantity]) => quantity > 0);
+
+    if (entries.length === 0) {
+      this.isSubmitting.set(false);
+      this.router.navigate(['/products', product._id]);
+      return;
+    }
+
+    const calls = entries.map(([storeId, quantity]) =>
+      this.stocksService.setStock({ productId: product._id, storeId, quantity }),
+    );
+
+    forkJoin(calls)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
-        next: (product) => this.router.navigate(['/products', product._id]),
-        error: (error) => {
-          this.errorMessage.set(
-            error?.error?.message ?? error?.error?.error ?? 'Impossible de creer le produit.',
-          );
-        },
+        // The product is created either way; navigate even if a stock call fails.
+        next: () => this.router.navigate(['/products', product._id]),
+        error: () => this.router.navigate(['/products', product._id]),
       });
   }
 }

@@ -1,0 +1,103 @@
+<section class="mx-auto w-full max-w-3xl px-6 py-10">
+  <div class="mb-8 flex flex-col gap-1">
+    <h1 class="font-heading text-3xl font-semibold tracking-tight">Your cart</h1>
+    <p class="text-sm text-muted-foreground">Review your items and place your order.</p>
+  </div>
+
+  <!-- Order result banner -->
+  @if (placedOrder(); as order) {
+    @if (order.status === 'VALIDATED') {
+      <div class="mb-6 flex items-center justify-between rounded-3xl bg-primary/10 px-5 py-4 text-sm">
+        <span class="font-medium text-foreground">Order validated · {{ order.total | currency: 'EUR' }}</span>
+        <a routerLink="/orders" class="font-medium text-primary transition-all hover:text-primary/80">Track order →</a>
+      </div>
+    } @else {
+      <div class="mb-6 rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">
+        Order {{ order.status | lowercase }}{{ order.reason ? ': ' + order.reason : '' }}
+      </div>
+    }
+  }
+
+  @if (errorMessage()) {
+    <div class="mb-6 rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">{{ errorMessage() }}</div>
+  }
+
+  <!-- Empty -->
+  @if (cart.items().length === 0) {
+    <div
+      class="flex flex-col items-center gap-3 rounded-4xl bg-card px-6 py-16 text-center shadow-md ring-1 ring-foreground/5"
+    >
+      <p class="font-heading text-base font-medium">Your cart is empty</p>
+      <a
+        routerLink="/products"
+        class="inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px"
+      >Browse products</a>
+    </div>
+  } @else {
+    <!-- Line items -->
+    <div class="flex flex-col gap-3">
+      @for (line of cart.items(); track line.productId + line.storeId) {
+        <div
+          class="flex items-center gap-4 rounded-4xl bg-card p-4 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+        >
+          <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent font-heading text-lg font-semibold text-primary">
+            {{ line.productName.charAt(0).toUpperCase() }}
+          </div>
+
+          <div class="flex flex-1 flex-col">
+            <p class="font-heading text-sm font-medium">{{ line.productName }}</p>
+            <p class="text-xs text-muted-foreground">{{ line.storeName }} · {{ line.unitPrice | currency: 'EUR' }} each</p>
+          </div>
+
+          <div class="inline-flex items-center rounded-full bg-muted p-1">
+            <button
+              type="button"
+              (click)="decrement(line.productId, line.storeId, line.quantity)"
+              class="flex size-7 items-center justify-center rounded-full text-base transition-all hover:bg-secondary active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+            >−</button>
+            <span class="w-7 text-center font-mono text-sm font-semibold tabular-nums">{{ line.quantity }}</span>
+            <button
+              type="button"
+              (click)="increment(line.productId, line.storeId, line.quantity)"
+              class="flex size-7 items-center justify-center rounded-full text-base transition-all hover:bg-secondary active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+            >+</button>
+          </div>
+
+          <p class="w-20 text-right font-mono text-sm font-semibold tabular-nums">
+            {{ line.unitPrice * line.quantity | currency: 'EUR' }}
+          </p>
+
+          <button
+            type="button"
+            (click)="remove(line.productId, line.storeId)"
+            class="rounded-full px-2 py-1 text-xs font-medium text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+            aria-label="Remove item"
+          >Remove</button>
+        </div>
+      }
+    </div>
+
+    <!-- Summary -->
+    <div
+      class="mt-6 flex flex-col gap-4 rounded-4xl bg-card p-6 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-muted-foreground">Total ({{ cart.count() }} items)</span>
+        <span class="font-mono text-2xl font-semibold tabular-nums">{{ cart.total() | currency: 'EUR' }}</span>
+      </div>
+
+      @if (!isAuthenticated()) {
+        <p class="text-xs text-muted-foreground">You'll be asked to log in to place the order.</p>
+      }
+
+      <button
+        type="button"
+        (click)="placeOrder()"
+        [disabled]="isPlacing()"
+        class="inline-flex h-12 w-full items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+      >
+        {{ isPlacing() ? 'Placing order…' : 'Place order' }}
+      </button>
+    </div>
+  }
+</section>

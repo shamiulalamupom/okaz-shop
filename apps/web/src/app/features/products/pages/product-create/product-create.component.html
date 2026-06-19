@@ -74,6 +74,36 @@
       </div>
     </div>
 
+    <!-- Initial stock (optional) -->
+    @if (stores().length > 0) {
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-0.5">
+          <p class="text-sm font-medium">Initial stock <span class="text-muted-foreground">(optional)</span></p>
+          <p class="text-xs text-muted-foreground">Set the quantity available in each store. Leave at 0 for none.</p>
+        </div>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          @for (store of stores(); track store.id) {
+            <div class="flex items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-2.5">
+              <span class="text-sm font-medium">
+                {{ store.name }}
+                @if (store.city) {
+                  <span class="text-muted-foreground">· {{ store.city }}</span>
+                }
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                [value]="stockFor(store.id)"
+                (input)="setStock(store.id, $any($event.target).value)"
+                class="h-9 w-20 rounded-xl bg-card px-3 text-right font-mono text-sm tabular-nums transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+              />
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Backend error -->
     @if (errorMessage()) {
       <div class="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">

@@ -28,6 +28,11 @@
         }
         @if (isAuthenticated()) {
           <a
+            routerLink="/orders"
+            routerLinkActive="bg-accent text-accent-foreground"
+            class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          >Orders</a>
+          <a
             routerLink="/profile"
             routerLinkActive="bg-accent text-accent-foreground"
             class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
@@ -37,6 +42,19 @@
 
       <!-- Auth actions -->
       <div class="flex items-center gap-2">
+        <!-- Cart -->
+        <a
+          routerLink="/cart"
+          routerLinkActive="bg-accent text-accent-foreground"
+          class="relative inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+        >
+          Cart
+          @if (cartCount() > 0) {
+            <span
+              class="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground tabular-nums"
+            >{{ cartCount() }}</span>
+          }
+        </a>
         @if (isAuthenticated()) {
           <span class="hidden max-w-40 truncate text-sm text-muted-foreground md:inline">
             {{ user()?.email }}

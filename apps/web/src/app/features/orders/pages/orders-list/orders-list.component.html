@@ -1,0 +1,70 @@
+<section class="mx-auto w-full max-w-3xl px-6 py-10">
+  <div class="mb-8 flex items-center justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="font-heading text-3xl font-semibold tracking-tight">My orders</h1>
+      <p class="text-sm text-muted-foreground">Track the status of your orders in real time.</p>
+    </div>
+    <span
+      class="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground"
+    >
+      <span
+        class="size-2 rounded-full"
+        [class]="liveConnected() ? 'bg-primary' : 'bg-muted-foreground/40'"
+      ></span>
+      {{ liveConnected() ? 'Live' : 'Offline' }}
+    </span>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="flex flex-col gap-3">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="h-20 w-full animate-pulse rounded-4xl bg-muted"></div>
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (errorMessage()) {
+    <div class="rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">{{ errorMessage() }}</div>
+  }
+
+  <!-- Empty -->
+  @else if (orders().length === 0) {
+    <div
+      class="flex flex-col items-center gap-3 rounded-4xl bg-card px-6 py-16 text-center shadow-md ring-1 ring-foreground/5"
+    >
+      <p class="font-heading text-base font-medium">No orders yet</p>
+      <a
+        routerLink="/products"
+        class="inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px"
+      >Start shopping</a>
+    </div>
+  }
+
+  <!-- List -->
+  @else {
+    <div class="flex flex-col gap-3">
+      @for (order of orders(); track order.id) {
+        <a
+          [routerLink]="['/orders', order.id]"
+          class="flex items-center gap-4 rounded-4xl bg-card p-5 text-card-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:shadow-lg active:translate-y-px dark:ring-foreground/10"
+        >
+          <div class="flex flex-1 flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs text-muted-foreground">#{{ order.id.slice(-8) }}</span>
+              <span
+                class="inline-flex h-5 items-center rounded-3xl px-2.5 text-[11px] font-semibold uppercase tracking-wide"
+                [class]="statusClass(order.status)"
+              >{{ order.status }}</span>
+            </div>
+            <p class="text-xs text-muted-foreground">
+              {{ order.createdAt | date: 'medium' }} · {{ order.items.length }} item(s)
+            </p>
+          </div>
+          <span class="font-mono text-base font-semibold tabular-nums">{{ order.total | currency: 'EUR' }}</span>
+        </a>
+      }
+    </div>
+  }
+</section>
