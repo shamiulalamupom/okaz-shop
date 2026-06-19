@@ -22,6 +22,11 @@ export class App {
     () => this.authService.roles().includes('STORE_MANAGER') || this.authService.roles().includes('ADMIN'),
   );
 
+  constructor() {
+    // Validate the persisted session and refresh roles on load.
+    this.authService.refreshSession();
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigateByUrl('/products');

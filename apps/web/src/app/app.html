@@ -13,35 +13,37 @@
       </a>
 
       <!-- Primary nav -->
-      <nav class="hidden items-center gap-1 sm:flex">
+      <nav
+        class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none] sm:flex-none [&::-webkit-scrollbar]:hidden"
+      >
         <a
           routerLink="/products"
           routerLinkActive="bg-accent text-accent-foreground"
-          class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
         >Products</a>
         @if (canManage()) {
           <a
             routerLink="/products/new"
             routerLinkActive="bg-accent text-accent-foreground"
-            class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+            class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >Add product</a>
         }
         @if (isAuthenticated()) {
           <a
             routerLink="/orders"
             routerLinkActive="bg-accent text-accent-foreground"
-            class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+            class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >Orders</a>
           <a
             routerLink="/profile"
             routerLinkActive="bg-accent text-accent-foreground"
-            class="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+            class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >Account</a>
         }
       </nav>
 
       <!-- Auth actions -->
-      <div class="flex items-center gap-2">
+      <div class="flex shrink-0 items-center gap-2">
         <!-- Cart -->
         <a
           routerLink="/cart"

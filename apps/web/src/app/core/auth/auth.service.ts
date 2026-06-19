@@ -32,6 +32,21 @@ export class AuthService {
     return roles.some((role) => current.includes(role));
   }
 
+  /**
+   * Validates the persisted token on app load: refreshes the user/roles from the
+   * server, or clears the session if the token is no longer valid.
+   */
+  refreshSession() {
+    if (!isPlatformBrowser(this.platformId) || !this.state().token) {
+      return;
+    }
+
+    this.http.get<User>(`${environment.apiUrl}/auth/me`).subscribe({
+      next: (user) => this.setState({ user, token: this.state().token }),
+      error: () => this.logout(),
+    });
+  }
+
   login(payload: LoginPayload) {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, payload).pipe(
       tap((response) => {

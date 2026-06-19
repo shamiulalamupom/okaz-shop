@@ -6,7 +6,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'auth/login',
+    redirectTo: 'products',
   },
   {
     path: 'auth',
@@ -26,12 +26,12 @@ export const routes: Routes = [
   },
   {
     path: 'profile',
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/auth/pages/profile/profile.component').then((m) => m.ProfileComponent),
   },
   {
     path: '**',
-    redirectTo: 'auth/login',
+    loadComponent: () => import('./features/not-found/not-found.component').then((m) => m.NotFoundComponent),
   },
 ];
