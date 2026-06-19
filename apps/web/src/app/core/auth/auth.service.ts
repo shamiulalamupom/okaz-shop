@@ -24,6 +24,13 @@ export class AuthService {
   readonly user = computed(() => this.state().user);
   readonly token = computed(() => this.state().token);
   readonly isAuthenticated = computed(() => !!this.state().token);
+  readonly roles = computed(() => this.state().user?.roles ?? []);
+
+  /** True when the current user holds at least one of the given roles. */
+  hasAnyRole(roles: string[]): boolean {
+    const current = this.state().user?.roles ?? [];
+    return roles.some((role) => current.includes(role));
+  }
 
   login(payload: LoginPayload) {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, payload).pipe(

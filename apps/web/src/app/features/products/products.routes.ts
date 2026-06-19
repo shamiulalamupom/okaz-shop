@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from '../../core/auth/auth.guard';
+import { managerGuard } from '../../core/auth/manager.guard';
 
 export const PRODUCTS_ROUTES: Routes = [
   {
@@ -10,7 +10,7 @@ export const PRODUCTS_ROUTES: Routes = [
   },
   {
     path: 'new',
-    canActivate: [authGuard],
+    canActivate: [managerGuard],
     loadComponent: () =>
       import('./pages/product-create/product-create.component').then((m) => m.ProductCreateComponent),
   },
