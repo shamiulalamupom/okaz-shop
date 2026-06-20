@@ -2,9 +2,8 @@ import { request as httpRequest } from 'node:http';
 
 import { beforeAll, describe, expect, it } from 'vitest';
 
-const baseUrl = process.env.TEST_GATEWAY_URL ?? 'http://localhost:4000';
-const adminEmail = process.env.ADMIN_SEED_EMAIL ?? 'admin@example.com';
-const adminPassword = process.env.ADMIN_SEED_PASSWORD ?? 'Admin1234!';
+import { adminEmail, adminPassword, baseUrl } from './support/client.js';
+
 let ipCounter = 1;
 
 const uniqueEmail = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
