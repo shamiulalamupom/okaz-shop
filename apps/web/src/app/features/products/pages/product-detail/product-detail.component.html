@@ -36,7 +36,11 @@
       <div
         class="flex min-h-80 items-center justify-center overflow-hidden rounded-4xl bg-accent shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
       >
-        <span class="font-heading text-[7rem] font-semibold text-primary">{{ displayInitial() }}</span>
+        @if (item.imageUrl) {
+          <img [src]="item.imageUrl" [alt]="item.name" class="size-full object-cover" />
+        } @else {
+          <span class="font-heading text-[7rem] font-semibold text-primary">{{ displayInitial() }}</span>
+        }
       </div>
 
       <!-- Info card -->

@@ -47,6 +47,13 @@ export class AuthService {
     });
   }
 
+  /** Updates the current user's profile (e.g. avatar) and refreshes local state. */
+  updateProfile(changes: { avatarUrl?: string; avatarMediaId?: string; nom?: string; prenom?: string }) {
+    return this.http.patch<User>(`${environment.apiUrl}/auth/me`, changes).pipe(
+      tap((user) => this.setState({ user, token: this.state().token })),
+    );
+  }
+
   login(payload: LoginPayload) {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, payload).pipe(
       tap((response) => {

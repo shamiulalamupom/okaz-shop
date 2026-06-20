@@ -3,3 +3,4 @@
 -- services each own a separate logical database on the same Postgres instance.
 CREATE DATABASE okaz_stocks;
 CREATE DATABASE okaz_orders;
+CREATE DATABASE okaz_media;

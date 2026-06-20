@@ -10,6 +10,33 @@ type Credentials = {
   password: string;
 };
 
+type ProfileUpdate = {
+  avatarUrl?: string;
+  avatarMediaId?: string;
+  nom?: string;
+  prenom?: string;
+};
+
+type UserRecord = {
+  id: string;
+  email: string;
+  roles: string[];
+  nom: string | null;
+  prenom: string | null;
+  avatarUrl: string | null;
+  avatarMediaId: string | null;
+};
+
+const publicUser = (user: UserRecord) => ({
+  id: user.id,
+  email: user.email,
+  roles: user.roles,
+  nom: user.nom,
+  prenom: user.prenom,
+  avatarUrl: user.avatarUrl,
+  avatarMediaId: user.avatarMediaId
+});
+
 export const authService = {
   async register(credentials: Credentials) {
     const passwordHash = await hashPassword(credentials.password);
@@ -22,11 +49,17 @@ export const authService = {
       }
     });
 
-    return {
-      id: user.id,
-      email: user.email,
-      roles: user.roles
-    };
+    return publicUser(user);
+  },
+
+  async getById(id: string) {
+    const user = await prisma.user.findUnique({ where: { id } });
+    return user ? publicUser(user) : null;
+  },
+
+  async updateProfile(id: string, data: ProfileUpdate) {
+    const user = await prisma.user.update({ where: { id }, data });
+    return publicUser(user);
   },
 
   async login(credentials: Credentials) {
@@ -54,11 +87,7 @@ export const authService = {
 
     return {
       accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        roles: user.roles
-      }
+      user: publicUser(user)
     };
   }
 };

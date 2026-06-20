@@ -14,6 +14,8 @@ model User {
   email            String   @unique
   telephone        String?
   adresseLivraison String?
+  avatarUrl        String?
+  avatarMediaId    String?
   passwordHash     String
   roles            String[] @default(["CUSTOMER"])
   isActive         Boolean  @default(true)

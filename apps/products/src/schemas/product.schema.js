@@ -6,6 +6,8 @@ export const createProductSchema = zod.object({
   description: zod.string().optional(),
   price: zod.number().positive("Le prix doit être un nombre positif"),
   category: zod.string().optional(),
+  imageUrl: zod.string().url().optional(),
+  imageMediaId: zod.string().optional(),
 });
 
 // Modifier produit
@@ -14,6 +16,8 @@ export const updateProductSchema = zod.object({
   description: zod.string().optional(),
   price: zod.number().positive("Le prix doit être un nombre positif").optional(),
   category: zod.string().optional(),
+  imageUrl: zod.string().url().optional(),
+  imageMediaId: zod.string().optional(),
 });
 
 // Valider l'ID

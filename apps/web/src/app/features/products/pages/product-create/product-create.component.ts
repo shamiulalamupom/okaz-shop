@@ -3,14 +3,16 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 
+import { UploadResult } from '../../../../core/media/media.models';
 import { Product } from '../../../../core/products/product.models';
 import { ProductsService } from '../../../../core/products/products.service';
 import { Store } from '../../../../core/stocks/stock.models';
 import { StocksService } from '../../../../core/stocks/stocks.service';
+import { ImageUploadComponent } from '../../../../shared/image-upload/image-upload.component';
 
 @Component({
   selector: 'app-product-create',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ImageUploadComponent],
   templateUrl: './product-create.component.html',
 })
 export class ProductCreateComponent {
@@ -21,6 +23,9 @@ export class ProductCreateComponent {
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
+
+  readonly imageUrl = signal<string | null>(null);
+  private readonly imageMediaId = signal<string | null>(null);
 
   readonly stores = signal<Store[]>([]);
   // Initial stock quantity per storeId (0 = none).
@@ -51,6 +56,11 @@ export class ProductCreateComponent {
     this.stockByStore.update((state) => ({ ...state, [storeId]: quantity }));
   }
 
+  onImageUploaded(result: UploadResult) {
+    this.imageUrl.set(result.cdnUrl);
+    this.imageMediaId.set(result.mediaId);
+  }
+
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -63,6 +73,8 @@ export class ProductCreateComponent {
       description: rawValue.description.trim() || undefined,
       price: Number(rawValue.price),
       category: rawValue.category.trim() || undefined,
+      imageUrl: this.imageUrl() ?? undefined,
+      imageMediaId: this.imageMediaId() ?? undefined,
     };
 
     this.errorMessage.set('');

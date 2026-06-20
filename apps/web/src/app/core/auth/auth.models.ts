@@ -1,8 +1,12 @@
 export interface User {
   id: string;
   name?: string;
+  nom?: string | null;
+  prenom?: string | null;
   email: string;
   roles?: string[];
+  avatarUrl?: string | null;
+  avatarMediaId?: string | null;
 }
 
 export interface LoginPayload {

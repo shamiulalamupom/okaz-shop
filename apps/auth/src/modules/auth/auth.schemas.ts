@@ -30,3 +30,12 @@ export const loginRequestSchema = z
     password: passwordSchema
   })
   .strict();
+
+export const updateProfileSchema = z
+  .object({
+    avatarUrl: z.string().url().max(2048).optional(),
+    avatarMediaId: z.string().trim().max(64).optional(),
+    nom: z.string().trim().max(120).optional(),
+    prenom: z.string().trim().max(120).optional()
+  })
+  .strict();

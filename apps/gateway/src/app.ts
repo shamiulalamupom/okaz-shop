@@ -18,6 +18,7 @@ import { createAuthProxyRoutes } from "./modules/auth-proxy/auth-proxy.routes.js
 import { createProductsProxyRoutes } from "./modules/products-proxy/products-proxy.routes.js";
 import { createStocksProxyRoutes } from "./modules/stocks-proxy/stocks-proxy.routes.js";
 import { createOrdersProxyRoutes } from "./modules/orders-proxy/orders-proxy.routes.js";
+import { createMediaProxyRoutes } from "./modules/media-proxy/media-proxy.routes.js";
 import { createInternalRoutes } from "./modules/internal/internal.routes.js";
 import { createDemoRoutes } from "./modules/demo/demo.routes.js";
 import { createHealthRoutes } from "./modules/health/health.routes.js";
@@ -33,7 +34,7 @@ gatewayApp.use(
   cors({
     origin: gatewayConfig.corsOrigin,
     allowHeaders: ["Authorization", "Content-Type", "X-Request-Id"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 gatewayApp.use("*", securityHeadersMiddleware());
@@ -69,6 +70,10 @@ gatewayApp.route(
 gatewayApp.route(
   "/orders",
   createOrdersProxyRoutes(gatewayConfig.ordersServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/media",
+  createMediaProxyRoutes(gatewayConfig.mediaServiceUrl, gatewayConfig.jwt),
 );
 gatewayApp.route(
   "/internal",

@@ -7,10 +7,11 @@ export const wsUrl = `${baseUrl.replace(/^http/, 'ws')}/ws`;
 export const adminEmail = testConfig.adminEmail;
 export const adminPassword = testConfig.adminPassword;
 
-let ipCounter = 1;
-// A fresh forwarded IP per request keeps the gateway login rate-limiter from
-// interfering with the test suite.
-const nextIp = () => `198.51.100.${(ipCounter++ % 250) + 1}`;
+// A random forwarded IP per request keeps the gateway login rate-limiter from
+// interfering with the test suite (test files run in separate workers, so a
+// shared counter would collide across files on the per-IP login limit).
+const octet = () => Math.floor(Math.random() * 254) + 1;
+const nextIp = () => `10.${octet()}.${octet()}.${octet()}`;
 
 export const uniqueEmail = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;

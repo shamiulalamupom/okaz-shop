@@ -52,12 +52,15 @@ services:
         condition: service_healthy
       orders:
         condition: service_healthy
+      media:
+        condition: service_healthy
     environment:
       GATEWAY_PORT: 4000
       AUTH_SERVICE_URL: http://auth:4001
       PRODUCTS_SERVICE_URL: http://products:4002
       STOCKS_SERVICE_URL: http://stocks:4003
       ORDERS_SERVICE_URL: http://orders:4004
+      MEDIA_SERVICE_URL: http://media:4005
       GATEWAY_SERVICE_URL: http://gateway:4000
       INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
@@ -213,6 +216,42 @@ services:
         [
           "CMD-SHELL",
           'node -e "fetch(''http://localhost:4004/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  media:
+    build:
+      context: .
+      dockerfile: apps/media/Dockerfile
+    container_name: okaz-media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      MEDIA_PORT: 4005
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/okaz_media?schema=public
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
+      AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-okaz-auth}
+      AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}
+      MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-5000000}
+      MEDIA_ALLOWED_TYPES: ${MEDIA_ALLOWED_TYPES:-image/jpeg,image/png,image/webp}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_REGION: ${R2_REGION:-auto}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
+      NODE_ENV: development
+    command: sh -c "pnpm prisma:migrate:deploy && pnpm start"
+    expose:
+      - "4005"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://localhost:4005/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
       interval: 10s
       timeout: 5s

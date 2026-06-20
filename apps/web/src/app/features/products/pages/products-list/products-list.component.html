@@ -63,10 +63,14 @@
           class="group/card flex cursor-pointer flex-col overflow-hidden rounded-4xl bg-card text-card-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:shadow-lg active:translate-y-px dark:ring-foreground/10"
         >
           <!-- Thumbnail -->
-          <div class="flex h-44 items-center justify-center bg-accent">
-            <span class="font-heading text-5xl font-semibold text-primary">
-              {{ product.name.charAt(0).toUpperCase() }}
-            </span>
+          <div class="flex h-44 items-center justify-center overflow-hidden bg-accent">
+            @if (product.imageUrl) {
+              <img [src]="product.imageUrl" [alt]="product.name" class="size-full object-cover" />
+            } @else {
+              <span class="font-heading text-5xl font-semibold text-primary">
+                {{ product.name.charAt(0).toUpperCase() }}
+              </span>
+            }
           </div>
 
           <!-- Body -->

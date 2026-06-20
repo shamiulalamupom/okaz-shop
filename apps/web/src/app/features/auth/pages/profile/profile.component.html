@@ -13,14 +13,33 @@
       <!-- Identity -->
       <div class="flex items-center gap-5">
         <div
-          class="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-2xl font-semibold text-primary-foreground shadow-md ring-1 ring-foreground/5"
+          class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-2xl font-semibold text-primary-foreground shadow-md ring-1 ring-foreground/5"
         >
-          {{ (currentUser.name || currentUser.email).charAt(0).toUpperCase() }}
+          @if (currentUser.avatarUrl) {
+            <img [src]="currentUser.avatarUrl" alt="Avatar" class="size-full object-cover" />
+          } @else {
+            {{ (currentUser.prenom || currentUser.email).charAt(0).toUpperCase() }}
+          }
         </div>
         <div class="flex flex-col gap-0.5">
-          <p class="font-heading text-lg font-medium">{{ currentUser.name || 'Okaz member' }}</p>
+          <p class="font-heading text-lg font-medium">{{ currentUser.prenom || 'Okaz member' }}</p>
           <p class="text-sm text-muted-foreground">{{ currentUser.email }}</p>
         </div>
+      </div>
+
+      <div class="h-px w-full bg-border"></div>
+
+      <!-- Avatar upload -->
+      <div class="flex flex-col gap-2">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Profile photo</p>
+        <app-image-upload
+          purpose="PROFILE_IMAGE"
+          [currentUrl]="currentUser.avatarUrl ?? null"
+          (uploaded)="onAvatarUploaded($event)"
+        />
+        @if (avatarError()) {
+          <p class="text-xs text-destructive">{{ avatarError() }}</p>
+        }
       </div>
 
       <div class="h-px w-full bg-border"></div>

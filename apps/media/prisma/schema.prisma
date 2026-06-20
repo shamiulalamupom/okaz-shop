@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../prisma/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MediaStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum MediaPurpose {
+  PRODUCT_IMAGE
+  PROFILE_IMAGE
+}
+
+model Media {
+  id          String       @id @default(cuid())
+  ownerId     String
+  purpose     MediaPurpose
+  status      MediaStatus  @default(PENDING)
+  bucketKey   String       @unique
+  contentType String
+  sizeBytes   Int?
+  etag        String?
+  cdnUrl      String?
+  linkedType  String?
+  linkedId    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([ownerId])
+  @@index([linkedType, linkedId])
+}
