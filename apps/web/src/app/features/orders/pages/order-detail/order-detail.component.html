@@ -39,18 +39,30 @@
         <div class="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ item.reason }}</div>
       }
 
+      @if (item.shippingAddress) {
+        <div class="flex flex-col gap-1">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Deliver to</p>
+          <p class="text-sm">{{ item.shippingAddress }}</p>
+        </div>
+      }
+
       <div class="h-px w-full bg-border"></div>
 
       <!-- Items -->
       <div class="flex flex-col gap-3">
         <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Items</p>
         @for (line of item.items; track line.id ?? line.productId + line.storeId) {
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-muted-foreground">
-              <span class="font-mono text-xs">{{ line.productId.slice(-6) }}</span>
-              · qty {{ line.quantity }}
-            </span>
-            <span class="font-mono tabular-nums">{{ line.unitPrice * line.quantity | currency: 'EUR' }}</span>
+          <div class="flex items-center justify-between gap-3 text-sm">
+            <div class="flex min-w-0 flex-col">
+              <span class="truncate font-medium">{{ productName(line.productId) }}</span>
+              <span class="text-xs text-muted-foreground">
+                @if (storeName(line.storeId)) {
+                  {{ storeName(line.storeId) }} ·
+                }
+                {{ line.unitPrice | currency: 'EUR' }} × {{ line.quantity }}
+              </span>
+            </div>
+            <span class="shrink-0 font-mono tabular-nums">{{ line.unitPrice * line.quantity | currency: 'EUR' }}</span>
           </div>
         }
       </div>

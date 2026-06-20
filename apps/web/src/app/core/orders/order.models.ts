@@ -14,6 +14,7 @@ export interface Order {
   status: OrderStatus;
   total: number;
   reason: string | null;
+  shippingAddress?: string | null;
   createdAt: string;
   updatedAt?: string;
   items: OrderItem[];

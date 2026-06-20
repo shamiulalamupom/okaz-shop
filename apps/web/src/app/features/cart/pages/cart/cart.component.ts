@@ -3,6 +3,8 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { Address, formatAddress } from '../../../../core/account/address.models';
+import { AddressesService } from '../../../../core/account/addresses.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { CartService } from '../../../../core/cart/cart.service';
 import { Order } from '../../../../core/orders/order.models';
@@ -15,6 +17,7 @@ import { OrdersService } from '../../../../core/orders/orders.service';
 })
 export class CartComponent {
   private readonly ordersService = inject(OrdersService);
+  private readonly addressesService = inject(AddressesService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly cart = inject(CartService);
@@ -23,6 +26,26 @@ export class CartComponent {
   readonly isPlacing = signal(false);
   readonly errorMessage = signal('');
   readonly placedOrder = signal<Order | null>(null);
+
+  readonly addresses = signal<Address[]>([]);
+  readonly selectedAddressId = signal<string>('');
+  readonly format = formatAddress;
+
+  constructor() {
+    if (this.auth.isAuthenticated()) {
+      this.addressesService.list().subscribe({
+        next: (addresses) => {
+          this.addresses.set(addresses);
+          if (addresses.length > 0) {
+            this.selectedAddressId.set(addresses[0].id);
+          }
+        },
+        error: () => {
+          /* addresses are optional for checkout */
+        },
+      });
+    }
+  }
 
   increment(productId: string, storeId: string, current: number) {
     this.cart.setQuantity(productId, storeId, current + 1);
@@ -52,12 +75,15 @@ export class CartComponent {
       return;
     }
 
+    const selected = this.addresses().find((address) => address.id === this.selectedAddressId());
+    const shippingAddress = selected ? formatAddress(selected) : undefined;
+
     this.errorMessage.set('');
     this.placedOrder.set(null);
     this.isPlacing.set(true);
 
     this.ordersService
-      .placeOrder(items)
+      .placeOrder(items, shippingAddress)
       .pipe(finalize(() => this.isPlacing.set(false)))
       .subscribe({
         next: (order) => {

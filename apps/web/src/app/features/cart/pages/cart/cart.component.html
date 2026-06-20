@@ -86,7 +86,36 @@
         <span class="font-mono text-2xl font-semibold tabular-nums">{{ cart.total() | currency: 'EUR' }}</span>
       </div>
 
-      @if (!isAuthenticated()) {
+      <!-- Delivery address -->
+      @if (isAuthenticated()) {
+        <div class="flex flex-col gap-2">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Deliver to</p>
+          @if (addresses().length > 0) {
+            <div class="flex flex-col gap-2">
+              @for (address of addresses(); track address.id) {
+                <label
+                  class="flex cursor-pointer items-center gap-3 rounded-2xl bg-muted px-4 py-2.5 text-sm transition-all has-checked:bg-accent has-checked:text-accent-foreground"
+                >
+                  <input
+                    type="radio"
+                    name="address"
+                    class="accent-primary"
+                    [value]="address.id"
+                    [checked]="selectedAddressId() === address.id"
+                    (change)="selectedAddressId.set(address.id)"
+                  />
+                  <span>{{ format(address) }}</span>
+                </label>
+              }
+            </div>
+          } @else {
+            <p class="text-sm text-muted-foreground">
+              No saved addresses.
+              <a routerLink="/profile" class="font-medium text-primary transition-all hover:text-primary/80">Add one in your account</a>.
+            </p>
+          }
+        </div>
+      } @else {
         <p class="text-xs text-muted-foreground">You'll be asked to log in to place the order.</p>
       }
 

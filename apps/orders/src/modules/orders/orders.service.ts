@@ -24,6 +24,7 @@ const serializeOrder = (order: OrderWithItems) => ({
   status: order.status,
   total: Number(order.total),
   reason: order.reason,
+  shippingAddress: order.shippingAddress,
   createdAt: order.createdAt,
   updatedAt: order.updatedAt,
   items: order.items.map((item) => ({
@@ -81,6 +82,7 @@ export const ordersService = {
         userId,
         status: 'PENDING',
         total,
+        shippingAddress: input.shippingAddress ?? null,
         items: {
           create: lines.map((line) => ({
             productId: line.productId,

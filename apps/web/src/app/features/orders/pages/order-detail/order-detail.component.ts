@@ -5,7 +5,9 @@ import { finalize } from 'rxjs';
 
 import { Order, OrderStatus } from '../../../../core/orders/order.models';
 import { OrdersService } from '../../../../core/orders/orders.service';
+import { ProductsService } from '../../../../core/products/products.service';
 import { RealtimeService } from '../../../../core/realtime/realtime.service';
+import { StocksService } from '../../../../core/stocks/stocks.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -15,6 +17,8 @@ import { RealtimeService } from '../../../../core/realtime/realtime.service';
 export class OrderDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly ordersService = inject(OrdersService);
+  private readonly productsService = inject(ProductsService);
+  private readonly stocksService = inject(StocksService);
   private readonly realtime = inject(RealtimeService);
 
   private readonly orderId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -24,8 +28,13 @@ export class OrderDetailComponent {
   readonly errorMessage = signal('');
   readonly isCancelling = signal(false);
 
+  // Lookups so order lines show product/store names instead of raw ids.
+  private readonly productNames = signal<Record<string, string>>({});
+  private readonly storeNames = signal<Record<string, string>>({});
+
   constructor() {
     this.load();
+    this.loadReferenceData();
     this.realtime.connect();
 
     effect(() => {
@@ -57,6 +66,31 @@ export class OrderDetailComponent {
         error: (error) =>
           this.errorMessage.set(error?.error?.message ?? error?.error?.error ?? 'Could not load this order.'),
       });
+  }
+
+  private loadReferenceData() {
+    this.productsService.getProducts().subscribe({
+      next: (products) =>
+        this.productNames.set(Object.fromEntries(products.map((product) => [product._id, product.name]))),
+      error: () => {
+        /* names are best-effort */
+      },
+    });
+    this.stocksService.getStores().subscribe({
+      next: (stores) =>
+        this.storeNames.set(Object.fromEntries(stores.map((store) => [store.id, store.name]))),
+      error: () => {
+        /* names are best-effort */
+      },
+    });
+  }
+
+  productName(productId: string): string {
+    return this.productNames()[productId] ?? `#${productId.slice(-6)}`;
+  }
+
+  storeName(storeId: string): string {
+    return this.storeNames()[storeId] ?? '';
   }
 
   cancel() {

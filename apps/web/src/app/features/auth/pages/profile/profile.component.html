@@ -58,6 +58,78 @@
         </div>
       </div>
 
+      <div class="h-px w-full bg-border"></div>
+
+      <!-- Delivery addresses -->
+      <div class="flex flex-col gap-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Delivery addresses</p>
+
+        @if (addresses().length > 0) {
+          <div class="flex flex-col gap-2">
+            @for (address of addresses(); track address.id) {
+              <div class="flex items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-2.5 text-sm">
+                <span>
+                  @if (address.label) {
+                    <span class="font-medium">{{ address.label }} — </span>
+                  }
+                  {{ address.line1 }}, {{ address.postalCode }} {{ address.city }}, {{ address.country }}
+                </span>
+                <button
+                  type="button"
+                  (click)="removeAddress(address.id)"
+                  class="shrink-0 rounded-full px-2 py-1 text-xs font-medium text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive"
+                >Remove</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-sm text-muted-foreground">No saved addresses yet.</p>
+        }
+
+        <!-- Add address -->
+        <form class="grid grid-cols-1 gap-3 sm:grid-cols-2" [formGroup]="addressForm" (ngSubmit)="addAddress()">
+          <input
+            formControlName="label"
+            placeholder="Label (e.g. Home)"
+            class="h-10 rounded-2xl bg-input px-3 text-sm transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          />
+          <input
+            formControlName="country"
+            placeholder="Country"
+            class="h-10 rounded-2xl bg-input px-3 text-sm transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          />
+          <input
+            formControlName="line1"
+            placeholder="Address line"
+            class="h-10 rounded-2xl bg-input px-3 text-sm transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 sm:col-span-2"
+          />
+          <input
+            formControlName="postalCode"
+            placeholder="Postal code"
+            class="h-10 rounded-2xl bg-input px-3 text-sm transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          />
+          <input
+            formControlName="city"
+            placeholder="City"
+            class="h-10 rounded-2xl bg-input px-3 text-sm transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          />
+          <div class="flex items-center gap-3 sm:col-span-2">
+            <button
+              type="submit"
+              [disabled]="isSavingAddress()"
+              class="inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+            >
+              {{ isSavingAddress() ? 'Saving…' : 'Add address' }}
+            </button>
+            @if (addressError()) {
+              <span class="text-xs text-destructive">{{ addressError() }}</span>
+            }
+          </div>
+        </form>
+      </div>
+
+      <div class="h-px w-full bg-border"></div>
+
       <!-- User id -->
       <div class="flex flex-col gap-2">
         <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">User ID</p>
