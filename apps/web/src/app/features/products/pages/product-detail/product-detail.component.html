@@ -67,8 +67,10 @@
           </div>
         } @else if (availabilityError()) {
           <p class="text-sm text-muted-foreground">Availability is unavailable right now.</p>
-        } @else if (storeStocks().length === 0) {
+        } @else if (!storesLoaded()) {
           <p class="text-sm text-muted-foreground">Loading availability…</p>
+        } @else if (storeStocks().length === 0) {
+          <p class="text-sm text-muted-foreground">No shops available yet.</p>
         } @else {
           <!-- Store / stock selector -->
           <div class="flex flex-col gap-2">
@@ -78,7 +80,7 @@
                 <button
                   type="button"
                   (click)="selectStore(entry.storeId)"
-                  [disabled]="entry.quantity === 0"
+                  [disabled]="entry.quantity === 0 && !canManage()"
                   [class]="
                     selectedStoreId() === entry.storeId
                       ? 'inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30'
@@ -126,6 +128,43 @@
               <a routerLink="/cart" class="font-medium text-primary transition-all hover:text-primary/80">View cart →</a>
             </div>
           }
+        }
+
+        <!-- Manage stock (manager / admin) — edits the store selected above -->
+        @if (canManage()) {
+          <div class="mt-2 flex flex-col gap-3 border-t border-border pt-4">
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Manage stock</p>
+            @if (storesLoaded() && storeStocks().length === 0) {
+              <p class="text-sm text-muted-foreground">
+                No shops yet.
+                <a routerLink="/stores" class="font-medium text-primary transition-all hover:text-primary/80">Create a shop</a>
+                to add stock.
+              </p>
+            } @else if (selectedStoreId()) {
+              <div class="flex items-center gap-3">
+                <span class="flex-1 truncate text-sm font-medium">{{ selectedStoreName() }}</span>
+                <input
+                  type="number"
+                  min="0"
+                  [value]="stockDraft()[selectedStoreId()]"
+                  (input)="onStockInput(selectedStoreId(), $any($event.target).value)"
+                  class="h-9 w-24 rounded-xl border border-border bg-background px-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                />
+                <button
+                  type="button"
+                  (click)="saveStock(selectedStoreId())"
+                  [disabled]="savingStoreId() === selectedStoreId()"
+                  class="inline-flex h-9 items-center justify-center rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+                >
+                  {{ savingStoreId() === selectedStoreId() ? 'Saving…' : 'Save' }}
+                </button>
+              </div>
+              <p class="text-xs text-muted-foreground">Editing the store selected above — pick another to change its stock.</p>
+              @if (stockMessage()) {
+                <p class="text-xs text-muted-foreground">{{ stockMessage() }}</p>
+              }
+            }
+          </div>
         }
 
         <!-- Manager actions -->

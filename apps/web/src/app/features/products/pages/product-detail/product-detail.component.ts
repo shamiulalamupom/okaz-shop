@@ -41,12 +41,22 @@ export class ProductDetailComponent {
   readonly isDeleting = signal(false);
   readonly storeStocks = signal<StoreStock[]>([]);
   readonly availabilityError = signal(false);
+  readonly storesLoaded = signal(false);
   readonly selectedStoreId = signal('');
   readonly qty = signal(1);
   readonly addedToCart = signal(false);
 
+  // Manager stock editing: draft quantity per store + save state.
+  readonly stockDraft = signal<Record<string, number>>({});
+  readonly savingStoreId = signal<string | null>(null);
+  readonly stockMessage = signal('');
+
   readonly selectedStock = computed(
     () => this.storeStocks().find((entry) => entry.storeId === this.selectedStoreId())?.quantity ?? 0,
+  );
+
+  readonly selectedStoreName = computed(
+    () => this.storeStocks().find((entry) => entry.storeId === this.selectedStoreId())?.storeName ?? '',
   );
 
   constructor() {
@@ -91,19 +101,55 @@ export class ProductDetailComponent {
           quantity: quantityByStore.get(store.id) ?? 0,
         }));
         this.storeStocks.set(merged);
+        this.stockDraft.set(Object.fromEntries(merged.map((entry) => [entry.storeId, entry.quantity])));
+        this.storesLoaded.set(true);
 
         // Default to the first store that has stock, otherwise the first store.
         const firstWithStock = merged.find((entry) => entry.quantity > 0) ?? merged[0];
         this.selectedStoreId.set(firstWithStock?.storeId ?? '');
       },
-      error: () => this.availabilityError.set(true),
+      error: () => {
+        this.availabilityError.set(true);
+        this.storesLoaded.set(true);
+      },
     });
+  }
+
+  onStockInput(storeId: string, value: string) {
+    const quantity = Math.max(0, Math.floor(Number(value) || 0));
+    this.stockDraft.update((draft) => ({ ...draft, [storeId]: quantity }));
+  }
+
+  /** Sets the absolute stock for this product at a store (manager/admin). */
+  saveStock(storeId: string) {
+    const product = this.product();
+    if (!product) {
+      return;
+    }
+    const quantity = this.stockDraft()[storeId] ?? 0;
+
+    this.savingStoreId.set(storeId);
+    this.stockMessage.set('');
+    this.stocksService
+      .setStock({ productId: product._id, storeId, quantity })
+      .pipe(finalize(() => this.savingStoreId.set(null)))
+      .subscribe({
+        next: (stock) => {
+          this.storeStocks.update((list) =>
+            list.map((entry) => (entry.storeId === storeId ? { ...entry, quantity: stock.quantity } : entry)),
+          );
+          this.stockMessage.set('Stock updated.');
+        },
+        error: (error) =>
+          this.stockMessage.set(error?.error?.message ?? error?.error?.error ?? 'Could not update stock.'),
+      });
   }
 
   selectStore(storeId: string) {
     this.selectedStoreId.set(storeId);
     this.qty.set(1);
     this.addedToCart.set(false);
+    this.stockMessage.set('');
   }
 
   increaseQty() {

@@ -118,6 +118,10 @@ export const getStores = async (token: string): Promise<Store[]> => {
   return result.body.data ?? [];
 };
 
+/** Creates a store (manager/admin only). Returns the raw API result. */
+export const createStore = (token: string, body: { name: string; city?: string }) =>
+  api<Store>('/stores', { method: 'POST', token, body });
+
 /** Creates a product as the given (manager/admin) token. Returns the created id. */
 export const createProduct = async (
   token: string,

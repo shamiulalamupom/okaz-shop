@@ -12,9 +12,9 @@
         <span class="font-heading text-lg font-semibold tracking-tight">Okaz</span>
       </a>
 
-      <!-- Primary nav -->
+      <!-- Primary nav (desktop) -->
       <nav
-        class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none] sm:flex-none [&::-webkit-scrollbar]:hidden"
+        class="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none] md:flex md:flex-none [&::-webkit-scrollbar]:hidden"
       >
         <a
           routerLink="/products"
@@ -34,6 +34,11 @@
             routerLinkActive="bg-accent text-accent-foreground"
             class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >Manage orders</a>
+          <a
+            routerLink="/stores"
+            routerLinkActive="bg-accent text-accent-foreground"
+            class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          >Shops</a>
         }
         @if (isAuthenticated()) {
           <a
@@ -66,28 +71,85 @@
         </a>
         @if (isAuthenticated()) {
           <app-notifications-bell />
-          <span class="hidden max-w-40 truncate text-sm text-muted-foreground md:inline">
-            {{ user()?.email }}
-          </span>
+        }
+
+        <!-- Auth actions (desktop) -->
+        <div class="hidden items-center gap-2 md:flex">
+          @if (isAuthenticated()) {
+            <span class="max-w-40 truncate text-sm text-muted-foreground">
+              {{ user()?.email }}
+            </span>
+            <button
+              type="button"
+              (click)="logout()"
+              class="inline-flex h-9 items-center justify-center rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+            >
+              Log out
+            </button>
+          } @else {
+            <a
+              routerLink="/auth/login"
+              class="inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+            >Log in</a>
+            <a
+              routerLink="/auth/register"
+              class="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+            >Sign up</a>
+          }
+        </div>
+
+        <!-- Mobile menu toggle -->
+        <button
+          type="button"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="mobileMenuOpen()"
+          aria-label="Toggle navigation menu"
+          class="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 md:hidden"
+        >
+          @if (mobileMenuOpen()) {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="size-5">
+              <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+            </svg>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="size-5">
+              <path d="M4 12h16" /><path d="M4 6h16" /><path d="M4 18h16" />
+            </svg>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu panel -->
+    @if (mobileMenuOpen()) {
+      <nav class="flex flex-col gap-1 border-t border-border/60 px-4 pb-4 pt-2 md:hidden">
+        <a
+          routerLink="/products"
+          routerLinkActive="bg-accent text-accent-foreground"
+          (click)="closeMenu()"
+          class="rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+        >Products</a>
+        @if (canManage()) {
+          <a routerLink="/products/new" routerLinkActive="bg-accent text-accent-foreground" (click)="closeMenu()" class="rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground">Add product</a>
+          <a routerLink="/orders/admin" routerLinkActive="bg-accent text-accent-foreground" (click)="closeMenu()" class="rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground">Manage orders</a>
+          <a routerLink="/stores" routerLinkActive="bg-accent text-accent-foreground" (click)="closeMenu()" class="rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground">Shops</a>
+        }
+        @if (isAuthenticated()) {
+          <a routerLink="/orders" routerLinkActive="bg-accent text-accent-foreground" (click)="closeMenu()" class="rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground">Orders</a>
+          <a routerLink="/profile" routerLinkActive="bg-accent text-accent-foreground" (click)="closeMenu()" class="rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground">Account</a>
+          <div class="my-2 h-px bg-border"></div>
+          <span class="truncate px-4 py-1 text-xs text-muted-foreground">{{ user()?.email }}</span>
           <button
             type="button"
             (click)="logout()"
-            class="inline-flex h-9 items-center justify-center rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-          >
-            Log out
-          </button>
+            class="rounded-2xl px-4 py-2.5 text-left text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          >Log out</button>
         } @else {
-          <a
-            routerLink="/auth/login"
-            class="inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
-          >Log in</a>
-          <a
-            routerLink="/auth/register"
-            class="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-          >Sign up</a>
+          <div class="my-2 h-px bg-border"></div>
+          <a routerLink="/auth/login" (click)="closeMenu()" class="rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground">Log in</a>
+          <a routerLink="/auth/register" (click)="closeMenu()" class="rounded-2xl bg-primary px-4 py-2.5 text-center text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80">Sign up</a>
         }
-      </div>
-    </div>
+      </nav>
+    }
   </header>
 
   <!-- Routed content -->

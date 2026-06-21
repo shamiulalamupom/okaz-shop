@@ -3,10 +3,12 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import {
   api,
   createProduct,
+  createStore,
   getStores,
   loginAdmin,
   registerCustomer,
   setStock,
+  uniqueName,
   waitForReady,
   type Store,
 } from './support/client.js';
@@ -43,6 +45,48 @@ describe('stores + stocks (integration)', () => {
     const productId = await createProduct(adminToken);
     const result = await setStock(customer.token, productId, stores[0].id, 5);
     expect(result.status).toBe(403);
+  });
+
+  it('forbids a CUSTOMER from creating a store (403) but lets an ADMIN create one (201)', async () => {
+    const forbidden = await createStore(customer.token, { name: uniqueName('Nope Store'), city: 'Nowhere' });
+    expect(forbidden.status).toBe(403);
+
+    const created = await createStore(adminToken, { name: uniqueName('Okaz Test'), city: 'Testville' });
+    expect(created.status).toBe(201);
+    expect(created.body.id).toBeTruthy();
+    expect(created.body.name).toMatch(/Okaz Test/);
+  });
+
+  it('lets an ADMIN edit a store but forbids a CUSTOMER (403)', async () => {
+    const created = await createStore(adminToken, { name: uniqueName('Editable'), city: 'Paris' });
+    expect(created.status).toBe(201);
+    const storeId = created.body.id;
+
+    const forbidden = await api(`/stores/${storeId}`, {
+      method: 'PUT',
+      token: customer.token,
+      body: { name: 'Hacked' },
+    });
+    expect(forbidden.status).toBe(403);
+
+    const newName = uniqueName('Renamed');
+    const updated = await api<Store>(`/stores/${storeId}`, {
+      method: 'PUT',
+      token: adminToken,
+      body: { name: newName, city: 'Lyon' },
+    });
+    expect(updated.status).toBe(200);
+    expect(updated.body.name).toBe(newName);
+    expect(updated.body.city).toBe('Lyon');
+  });
+
+  it('returns 404 when editing a store that does not exist', async () => {
+    const result = await api('/stores/nonexistent-store-id', {
+      method: 'PUT',
+      token: adminToken,
+      body: { name: 'Ghost' },
+    });
+    expect(result.status).toBe(404);
   });
 
   it('lets ADMIN set stock and reflects it in the per-product aggregate', async () => {

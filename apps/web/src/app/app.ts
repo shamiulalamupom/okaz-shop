@@ -1,5 +1,6 @@
-import { Component, computed, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 
 import { AuthService } from './core/auth/auth.service';
 import { CartService } from './core/cart/cart.service';
@@ -26,12 +27,28 @@ export class App {
     () => this.authService.roles().includes('STORE_MANAGER') || this.authService.roles().includes('ADMIN'),
   );
 
+  readonly mobileMenuOpen = signal(false);
+
   constructor() {
     // Validate the persisted session and refresh roles on load.
     this.authService.refreshSession();
+
+    // Close the mobile menu after navigating to a new page.
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => this.mobileMenuOpen.set(false));
+  }
+
+  toggleMenu() {
+    this.mobileMenuOpen.update((open) => !open);
+  }
+
+  closeMenu() {
+    this.mobileMenuOpen.set(false);
   }
 
   logout() {
+    this.closeMenu();
     this.authService.logout();
     this.router.navigateByUrl('/products');
   }

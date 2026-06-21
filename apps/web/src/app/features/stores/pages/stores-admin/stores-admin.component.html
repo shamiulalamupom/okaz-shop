@@ -1,0 +1,124 @@
+<section class="mx-auto w-full max-w-3xl px-6 py-10">
+  <div class="mb-8 flex flex-col gap-1">
+    <h1 class="font-heading text-3xl font-semibold tracking-tight">Shops</h1>
+    <p class="text-sm text-muted-foreground">Create and manage the shops where products are stocked.</p>
+  </div>
+
+  <!-- Create shop -->
+  <form
+    (ngSubmit)="create()"
+    class="mb-8 flex flex-col gap-4 rounded-4xl bg-card p-6 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+  >
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">New shop</p>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <input
+        type="text"
+        name="name"
+        placeholder="Shop name"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        required
+        class="h-11 flex-1 rounded-2xl border border-border bg-background px-4 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+      />
+      <input
+        type="text"
+        name="city"
+        placeholder="City (optional)"
+        [ngModel]="city()"
+        (ngModelChange)="city.set($event)"
+        class="h-11 flex-1 rounded-2xl border border-border bg-background px-4 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+      />
+      <button
+        type="submit"
+        [disabled]="!canCreate() || isCreating()"
+        class="inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+      >
+        {{ isCreating() ? 'Creating…' : 'Create shop' }}
+      </button>
+    </div>
+    @if (createError()) {
+      <p class="text-sm text-destructive">{{ createError() }}</p>
+    }
+  </form>
+
+  <!-- Existing shops -->
+  @if (errorMessage()) {
+    <div class="mb-6 rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="flex flex-col gap-3">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="h-16 w-full animate-pulse rounded-3xl bg-muted"></div>
+      }
+    </div>
+  } @else if (stores().length === 0) {
+    <div class="rounded-4xl bg-card px-6 py-16 text-center text-sm text-muted-foreground shadow-md ring-1 ring-foreground/5">
+      No shops yet. Create your first shop above.
+    </div>
+  } @else {
+    <div class="flex flex-col gap-3">
+      @for (store of stores(); track store.id) {
+        <div
+          class="flex flex-col gap-3 rounded-3xl bg-card p-5 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+        >
+          @if (editingId() === store.id) {
+            <!-- Edit form -->
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="text"
+                placeholder="Shop name"
+                [ngModel]="editName()"
+                (ngModelChange)="editName.set($event)"
+                class="h-10 flex-1 rounded-2xl border border-border bg-background px-4 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+              />
+              <input
+                type="text"
+                placeholder="City (optional)"
+                [ngModel]="editCity()"
+                (ngModelChange)="editCity.set($event)"
+                class="h-10 flex-1 rounded-2xl border border-border bg-background px-4 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+              />
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="saveEdit(store.id)"
+                  [disabled]="isSaving() || editName().trim().length === 0"
+                  class="inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px disabled:pointer-events-none disabled:opacity-60"
+                >
+                  {{ isSaving() ? 'Saving…' : 'Save' }}
+                </button>
+                <button
+                  type="button"
+                  (click)="cancelEdit()"
+                  class="text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
+                >Cancel</button>
+              </div>
+            </div>
+            @if (editError()) {
+              <p class="text-sm text-destructive">{{ editError() }}</p>
+            }
+          } @else {
+            <!-- Display -->
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex min-w-0 flex-col">
+                <span class="truncate font-heading text-sm font-medium">{{ store.name }}</span>
+                @if (store.city) {
+                  <span class="text-xs text-muted-foreground">{{ store.city }}</span>
+                }
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-mono text-[11px] text-muted-foreground">#{{ store.id.slice(-8) }}</span>
+                <button
+                  type="button"
+                  (click)="startEdit(store)"
+                  class="inline-flex h-9 items-center justify-center rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                >Edit</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>

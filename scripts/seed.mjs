@@ -103,7 +103,7 @@ const main = async () => {
   }
   console.log(`• Logged in ${Object.keys(USERS).length} users.`);
 
-  // 4) Stores (seeded by the stocks service on first start).
+  // 4) Stores (seeded by the stocks service on first start; admins can add more).
   const stores = (await must('/stores', { token: tokens.admin })).data ?? [];
   if (stores.length === 0) {
     throw new Error('No stores found. Is the stocks service seeded?');

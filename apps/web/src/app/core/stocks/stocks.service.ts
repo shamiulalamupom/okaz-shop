@@ -22,6 +22,16 @@ export class StocksService {
       .pipe(map((response) => response.data));
   }
 
+  /** Creates a shop (manager/admin only). */
+  createStore(body: { name: string; city?: string }) {
+    return this.http.post<Store>(`${this.apiUrl}/stores`, body);
+  }
+
+  /** Updates a shop's name/city (manager/admin only). */
+  updateStore(id: string, body: { name: string; city?: string }) {
+    return this.http.put<Store>(`${this.apiUrl}/stores/${id}`, body);
+  }
+
   /** Aggregated stock for a product across every store. */
   getProductStock(productId: string) {
     return this.http.get<ProductStock>(`${this.apiUrl}/stocks/${productId}`);

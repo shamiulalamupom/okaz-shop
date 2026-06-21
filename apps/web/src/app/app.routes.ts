@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/auth/auth.guard';
+import { managerGuard } from './core/auth/manager.guard';
 
 export const routes: Routes = [
   {
@@ -23,6 +24,14 @@ export const routes: Routes = [
   {
     path: 'orders',
     loadChildren: () => import('./features/orders/orders.routes').then((m) => m.ORDERS_ROUTES),
+  },
+  {
+    path: 'stores',
+    canActivate: [managerGuard],
+    loadComponent: () =>
+      import('./features/stores/pages/stores-admin/stores-admin.component').then(
+        (m) => m.StoresAdminComponent,
+      ),
   },
   {
     path: 'profile',

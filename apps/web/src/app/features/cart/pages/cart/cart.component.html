@@ -47,17 +47,19 @@
     <div class="flex flex-col gap-3">
       @for (line of cart.items(); track line.productId + line.storeId) {
         <div
-          class="flex items-center gap-4 rounded-4xl bg-card p-4 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+          class="flex flex-wrap items-center gap-3 rounded-4xl bg-card p-4 text-card-foreground shadow-md ring-1 ring-foreground/5 sm:gap-4 dark:ring-foreground/10"
         >
           <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent font-heading text-lg font-semibold text-primary">
             {{ line.productName.charAt(0).toUpperCase() }}
           </div>
 
-          <div class="flex flex-1 flex-col">
-            <p class="font-heading text-sm font-medium">{{ line.productName }}</p>
-            <p class="text-xs text-muted-foreground">{{ line.storeName }} · {{ line.unitPrice | currency: 'EUR' }} each</p>
+          <div class="flex min-w-0 flex-1 flex-col">
+            <p class="truncate font-heading text-sm font-medium">{{ line.productName }}</p>
+            <p class="truncate text-xs text-muted-foreground">{{ line.storeName }} · {{ line.unitPrice | currency: 'EUR' }} each</p>
           </div>
 
+          <!-- Controls: inline on larger screens, full second row on mobile -->
+          <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
           <div class="inline-flex items-center rounded-full bg-muted p-1">
             <button
               type="button"
@@ -82,6 +84,7 @@
             class="rounded-full px-2 py-1 text-xs font-medium text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
             aria-label="Remove item"
           >Remove</button>
+          </div>
         </div>
       }
     </div>
