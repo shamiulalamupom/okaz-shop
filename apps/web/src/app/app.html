@@ -28,6 +28,13 @@
             class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >Add product</a>
         }
+        @if (canManage()) {
+          <a
+            routerLink="/orders/admin"
+            routerLinkActive="bg-accent text-accent-foreground"
+            class="shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          >Manage orders</a>
+        }
         @if (isAuthenticated()) {
           <a
             routerLink="/orders"

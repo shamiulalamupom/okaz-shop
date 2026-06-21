@@ -11,7 +11,7 @@ export const orderItemInputSchema = z
 export const createOrderSchema = z
   .object({
     items: z.array(orderItemInputSchema).min(1, 'At least one item is required').max(50),
-    shippingAddress: z.string().trim().min(1).max(400).optional()
+    shippingAddress: z.string().trim().min(1, 'A delivery address is required').max(400)
   })
   .strict();
 

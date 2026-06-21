@@ -13,7 +13,6 @@ model User {
   prenom           String?
   email            String   @unique
   telephone        String?
-  adresseLivraison String?
   avatarUrl        String?
   avatarMediaId    String?
   passwordHash     String

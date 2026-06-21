@@ -6,15 +6,24 @@
 
   <!-- Order result banner -->
   @if (placedOrder(); as order) {
-    @if (order.status === 'VALIDATED') {
-      <div class="mb-6 flex items-center justify-between rounded-3xl bg-primary/10 px-5 py-4 text-sm">
-        <span class="font-medium text-foreground">Order validated · {{ order.total | currency: 'EUR' }}</span>
-        <a routerLink="/orders" class="font-medium text-primary transition-all hover:text-primary/80">Track order →</a>
-      </div>
-    } @else {
-      <div class="mb-6 rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">
-        Order {{ order.status | lowercase }}{{ order.reason ? ': ' + order.reason : '' }}
-      </div>
+    @switch (order.status) {
+      @case ('VALIDATED') {
+        <div class="mb-6 flex items-center justify-between rounded-3xl bg-primary/10 px-5 py-4 text-sm">
+          <span class="font-medium text-foreground">Order validated · {{ order.total | currency: 'EUR' }}</span>
+          <a routerLink="/orders" class="font-medium text-primary transition-all hover:text-primary/80">Track order →</a>
+        </div>
+      }
+      @case ('PENDING') {
+        <div class="mb-6 flex items-center justify-between rounded-3xl bg-secondary px-5 py-4 text-sm">
+          <span class="font-medium text-secondary-foreground">Order received — pending validation.</span>
+          <a routerLink="/orders" class="font-medium text-primary transition-all hover:text-primary/80">Track order →</a>
+        </div>
+      }
+      @default {
+        <div class="mb-6 rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">
+          Order {{ order.status | lowercase }}{{ order.reason ? ': ' + order.reason : '' }}
+        </div>
+      }
     }
   }
 
@@ -122,11 +131,14 @@
       <button
         type="button"
         (click)="placeOrder()"
-        [disabled]="isPlacing()"
+        [disabled]="isPlacing() || !canCheckout()"
         class="inline-flex h-12 w-full items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
       >
         {{ isPlacing() ? 'Placing order…' : 'Place order' }}
       </button>
+      @if (isAuthenticated() && !canCheckout()) {
+        <p class="text-center text-xs text-muted-foreground">Select or add a delivery address to continue.</p>
+      }
     </div>
   }
 </section>

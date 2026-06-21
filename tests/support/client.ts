@@ -152,8 +152,11 @@ export interface Order {
   items: OrderItemInput[];
 }
 
-export const placeOrder = (token: string, items: OrderItemInput[]) =>
-  api<Order>('/orders', { method: 'POST', token, body: { items } });
+export const placeOrder = (
+  token: string,
+  items: OrderItemInput[],
+  shippingAddress = '1 Test Street, 75001 Paris, France',
+) => api<Order>('/orders', { method: 'POST', token, body: { items, shippingAddress } });
 
 /** Opens a WebSocket to the gateway with the given token. */
 export const openSocket = (token?: string): WebSocket =>

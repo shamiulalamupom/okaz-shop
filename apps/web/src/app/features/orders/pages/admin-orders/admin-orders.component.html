@@ -1,0 +1,61 @@
+<section class="mx-auto w-full max-w-4xl px-6 py-10">
+  <div class="mb-8 flex flex-col gap-1">
+    <h1 class="font-heading text-3xl font-semibold tracking-tight">All orders</h1>
+    <p class="text-sm text-muted-foreground">Order management — validate pending or rejected orders.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="mb-6 rounded-3xl bg-destructive/10 px-5 py-4 text-sm text-destructive">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="flex flex-col gap-3">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="h-20 w-full animate-pulse rounded-4xl bg-muted"></div>
+      }
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="rounded-4xl bg-card px-6 py-16 text-center text-sm text-muted-foreground shadow-md ring-1 ring-foreground/5">
+      No orders yet.
+    </div>
+  } @else {
+    <div class="flex flex-col gap-3">
+      @for (order of orders(); track order.id) {
+        <div
+          class="flex flex-wrap items-center gap-4 rounded-4xl bg-card p-5 text-card-foreground shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10"
+        >
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="truncate text-sm font-medium">{{ customerLabel(order) }}</span>
+              <span
+                class="inline-flex h-5 items-center rounded-3xl px-2.5 text-[11px] font-semibold uppercase tracking-wide"
+                [class]="statusClass(order.status)"
+              >{{ order.status }}</span>
+            </div>
+            <p class="truncate text-sm text-muted-foreground">{{ itemsSummary(order) }}</p>
+            <p class="text-xs text-muted-foreground">
+              <a
+                [routerLink]="['/orders', order.id]"
+                class="font-mono transition-all hover:text-foreground"
+              >#{{ order.id.slice(-8) }}</a>
+              · {{ order.createdAt | date: 'medium' }}
+            </p>
+          </div>
+
+          <span class="font-mono text-base font-semibold tabular-nums">{{ order.total | currency: 'EUR' }}</span>
+
+          @if (canValidate(order)) {
+            <button
+              type="button"
+              (click)="validate(order.id)"
+              [disabled]="validatingId() === order.id"
+              class="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-primary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+            >
+              {{ validatingId() === order.id ? 'Validating…' : 'Validate' }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>

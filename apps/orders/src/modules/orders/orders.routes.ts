@@ -6,7 +6,9 @@ import {
   cancelOrderController,
   createOrderController,
   getOrderController,
-  listOrdersController
+  listAllOrdersController,
+  listOrdersController,
+  validateOrderController
 } from './orders.controller.js';
 
 const ordersRoutes = new Hono();
@@ -16,7 +18,10 @@ ordersRoutes.use('*', jwtAuthMiddleware(ordersConfig.jwt));
 
 ordersRoutes.get('/', listOrdersController);
 ordersRoutes.post('/', createOrderController);
+// Admin: register the literal /admin before the /:id param route.
+ordersRoutes.get('/admin', listAllOrdersController);
 ordersRoutes.get('/:id', getOrderController);
 ordersRoutes.post('/:id/cancel', cancelOrderController);
+ordersRoutes.post('/:id/validate', validateOrderController);
 
 export { ordersRoutes };

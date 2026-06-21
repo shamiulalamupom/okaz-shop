@@ -1,5 +1,5 @@
 import { CurrencyPipe, LowerCasePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
@@ -31,6 +31,11 @@ export class CartComponent {
   readonly selectedAddressId = signal<string>('');
   readonly format = formatAddress;
 
+  // An authenticated user must have a delivery address selected to check out.
+  readonly canCheckout = computed(
+    () => !this.isAuthenticated() || this.selectedAddressId().length > 0,
+  );
+
   constructor() {
     if (this.auth.isAuthenticated()) {
       this.addressesService.list().subscribe({
@@ -47,8 +52,11 @@ export class CartComponent {
     }
   }
 
+  // Stock is the real limit (enforced on order), but cap the line to keep the UI sane.
+  private readonly maxLineQuantity = 99;
+
   increment(productId: string, storeId: string, current: number) {
-    this.cart.setQuantity(productId, storeId, current + 1);
+    this.cart.setQuantity(productId, storeId, Math.min(current + 1, this.maxLineQuantity));
   }
 
   decrement(productId: string, storeId: string, current: number) {
@@ -76,7 +84,11 @@ export class CartComponent {
     }
 
     const selected = this.addresses().find((address) => address.id === this.selectedAddressId());
-    const shippingAddress = selected ? formatAddress(selected) : undefined;
+    if (!selected) {
+      this.errorMessage.set('Please select a delivery address before placing your order.');
+      return;
+    }
+    const shippingAddress = formatAddress(selected);
 
     this.errorMessage.set('');
     this.placedOrder.set(null);

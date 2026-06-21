@@ -13,6 +13,7 @@
     "prisma:migrate": "pnpm --filter @okaz/auth prisma:migrate",
     "prisma:migrate:deploy": "pnpm --filter @okaz/auth prisma:migrate:deploy",
     "prisma:seed": "pnpm --filter @okaz/auth prisma:seed",
+    "seed": "node scripts/seed.mjs",
     "seed:products": "node scripts/seed-products.mjs",
     "test": "vitest run",
     "test:e2e": "vitest run"

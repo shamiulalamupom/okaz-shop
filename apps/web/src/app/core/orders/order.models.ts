@@ -11,6 +11,7 @@ export interface OrderItem {
 export interface Order {
   id: string;
   userId: string;
+  userEmail?: string | null;
   status: OrderStatus;
   total: number;
   reason: string | null;

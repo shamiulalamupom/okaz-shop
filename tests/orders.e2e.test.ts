@@ -69,7 +69,22 @@ describe('orders lifecycle (e2e)', () => {
     const result = await api('/orders', {
       method: 'POST',
       token: customer.token,
-      body: { items: [{ productId: '0123456789abcdef01234567', storeId: stores[0].id, quantity: 1 }] },
+      body: {
+        items: [{ productId: '0123456789abcdef01234567', storeId: stores[0].id, quantity: 1 }],
+        shippingAddress: '1 Test Street, 75001 Paris, France',
+      },
+    });
+    expect(result.status).toBe(400);
+  });
+
+  it('rejects an order without a delivery address (400)', async () => {
+    const productId = await createProduct(adminToken, { price: 10 });
+    await setStock(adminToken, productId, stores[0].id, 5);
+
+    const result = await api('/orders', {
+      method: 'POST',
+      token: customer.token,
+      body: { items: [{ productId, storeId: stores[0].id, quantity: 1 }] },
     });
     expect(result.status).toBe(400);
   });

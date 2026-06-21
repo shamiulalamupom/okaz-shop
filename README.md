@@ -74,12 +74,19 @@ This builds and starts PostgreSQL, MongoDB, and all five services. On first star
 
 > Set strong values in `.env` for `AUTH_JWT_SECRET` (≥32 chars) and `INTERNAL_SERVICE_SECRET` (≥16 chars). These must match across the gateway, orders and stocks services (the compose file already wires them from the same variables).
 
-Seed the admin user and some demo products:
+Seed everything (users, products + stock, addresses, sample orders) with one command — run it against the running Docker stack:
 
 ```bash
-docker compose exec auth pnpm prisma:seed     # admin@example.com / Admin1234!
-pnpm seed:products:api                         # seeds catalogue via the gateway
+pnpm seed
 ```
+
+This seeds the users, resets transactional data and creates the catalogue + demo orders. Dev accounts:
+
+| Email | Password | Role |
+|---|---|---|
+| admin@example.com | Admin1234! | ADMIN |
+| manager@example.com | Manager1234! | STORE_MANAGER |
+| alice@example.com / bob@example.com | Password123 | CUSTOMER |
 
 ## Service URLs
 
