@@ -3,10 +3,12 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 
 import { AuthService } from './core/auth/auth.service';
 import { CartService } from './core/cart/cart.service';
+import { NotificationsStore } from './core/notifications/notifications.store';
+import { NotificationsBellComponent } from './shared/notifications-bell/notifications-bell.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationsBellComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -14,6 +16,8 @@ export class App {
   private readonly authService = inject(AuthService);
   private readonly cart = inject(CartService);
   private readonly router = inject(Router);
+  // Eagerly create the store so its load/live-refresh effects run app-wide.
+  private readonly notifications = inject(NotificationsStore);
 
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly user = this.authService.user;

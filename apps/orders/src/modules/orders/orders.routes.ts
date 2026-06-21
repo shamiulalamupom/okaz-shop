@@ -5,6 +5,7 @@ import { jwtAuthMiddleware } from '../../middleware/jwt-auth.middleware.js';
 import {
   cancelOrderController,
   createOrderController,
+  deliverOrderController,
   getOrderController,
   listAllOrdersController,
   listOrdersController,
@@ -23,5 +24,6 @@ ordersRoutes.get('/admin', listAllOrdersController);
 ordersRoutes.get('/:id', getOrderController);
 ordersRoutes.post('/:id/cancel', cancelOrderController);
 ordersRoutes.post('/:id/validate', validateOrderController);
+ordersRoutes.post('/:id/deliver', deliverOrderController);
 
 export { ordersRoutes };

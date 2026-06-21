@@ -20,6 +20,7 @@ export class AdminOrdersComponent {
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
   readonly validatingId = signal<string | null>(null);
+  readonly deliveringId = signal<string | null>(null);
   private readonly productNames = signal<Record<string, string>>({});
 
   constructor() {
@@ -67,14 +68,32 @@ export class AdminOrdersComponent {
       });
   }
 
+  deliver(id: string) {
+    this.deliveringId.set(id);
+    this.ordersService
+      .deliverOrder(id)
+      .pipe(finalize(() => this.deliveringId.set(null)))
+      .subscribe({
+        next: (updated) => this.orders.update((list) => list.map((o) => (o.id === updated.id ? updated : o))),
+        error: (error) =>
+          this.errorMessage.set(error?.error?.message ?? error?.error?.error ?? 'Could not mark the order delivered.'),
+      });
+  }
+
   canValidate(order: Order): boolean {
     return order.status === 'PENDING' || order.status === 'REJECTED';
+  }
+
+  canDeliver(order: Order): boolean {
+    return order.status === 'VALIDATED';
   }
 
   statusClass(status: OrderStatus): string {
     switch (status) {
       case 'VALIDATED':
         return 'bg-primary/15 text-primary';
+      case 'DELIVERED':
+        return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
       case 'REJECTED':
         return 'bg-destructive/10 text-destructive';
       case 'CANCELLED':

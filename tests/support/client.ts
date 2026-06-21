@@ -146,7 +146,7 @@ export interface OrderItemInput {
 export interface Order {
   id: string;
   userId: string;
-  status: 'PENDING' | 'VALIDATED' | 'REJECTED' | 'CANCELLED';
+  status: 'PENDING' | 'VALIDATED' | 'REJECTED' | 'CANCELLED' | 'DELIVERED';
   total: number;
   reason: string | null;
   items: OrderItemInput[];
@@ -157,6 +157,49 @@ export const placeOrder = (
   items: OrderItemInput[],
   shippingAddress = '1 Test Street, 75001 Paris, France',
 ) => api<Order>('/orders', { method: 'POST', token, body: { items, shippingAddress } });
+
+/** Marks a validated order delivered (staff only). */
+export const deliverOrder = (token: string, orderId: string) =>
+  api<Order>(`/orders/${orderId}/deliver`, { method: 'POST', token });
+
+export interface Notification {
+  id: string;
+  type: 'ORDER_PLACED' | 'ORDER_VALIDATED' | 'ORDER_REJECTED' | 'ORDER_DELIVERED';
+  title: string;
+  body: string;
+  orderId: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export const getNotifications = async (token: string): Promise<Notification[]> => {
+  const result = await api<{ data: Notification[] }>('/notifications', { token });
+  return result.body.data ?? [];
+};
+
+export const getUnreadCount = async (token: string): Promise<number> => {
+  const result = await api<{ count: number }>('/notifications/unread-count', { token });
+  return result.body.count ?? 0;
+};
+
+/** Polls the recipient's feed until a notification matching `predicate` appears. */
+export const waitForNotification = async (
+  token: string,
+  predicate: (notification: Notification) => boolean,
+  timeoutMs = 8000,
+): Promise<Notification> => {
+  const deadline = Date.now() + timeoutMs;
+  let last: Notification[] = [];
+  while (Date.now() < deadline) {
+    last = await getNotifications(token);
+    const match = last.find(predicate);
+    if (match) {
+      return match;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Timed out waiting for a matching notification. Last feed: ${JSON.stringify(last)}`);
+};
 
 /** Opens a WebSocket to the gateway with the given token. */
 export const openSocket = (token?: string): WebSocket =>

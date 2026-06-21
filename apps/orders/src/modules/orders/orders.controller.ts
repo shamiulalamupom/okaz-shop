@@ -86,8 +86,9 @@ export const validateOrderController = async (c: Context) => {
     return c.json({ message: 'Forbidden' }, 403);
   }
 
+  const user = c.get('user');
   const requestId = c.get('requestId');
-  const result = await ordersService.validateByAdmin(c.req.param('id')!, requestId);
+  const result = await ordersService.validateByAdmin(c.req.param('id')!, user.id, requestId);
 
   if ('notFound' in result) {
     return c.json({ message: 'Order not found' }, 404);
@@ -97,6 +98,25 @@ export const validateOrderController = async (c: Context) => {
   }
   if ('unavailable' in result) {
     return c.json({ message: 'Stock service unavailable; please retry' }, 503);
+  }
+
+  return c.json(result.order, 200);
+};
+
+export const deliverOrderController = async (c: Context) => {
+  if (!canManageOrders(c)) {
+    return c.json({ message: 'Forbidden' }, 403);
+  }
+
+  const user = c.get('user');
+  const requestId = c.get('requestId');
+  const result = await ordersService.deliver(c.req.param('id')!, user.id, requestId);
+
+  if ('notFound' in result) {
+    return c.json({ message: 'Order not found' }, 404);
+  }
+  if ('invalid' in result) {
+    return c.json({ message: 'Only validated orders can be marked delivered' }, 409);
   }
 
   return c.json(result.order, 200);

@@ -6,6 +6,7 @@ import './hono-env.js';
 import { authOpenApi } from './docs/auth.openapi.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { healthRoutes } from './modules/health/health.routes.js';
+import { internalRoutes } from './modules/internal/internal.routes.js';
 
 const logger = createLogger('auth-service');
 
@@ -18,6 +19,7 @@ authApp.route('/', healthRoutes);
 authApp.get('/openapi.json', (c) => c.json(authOpenApi));
 authApp.get('/docs', swaggerUI({ url: '/openapi.json' }));
 authApp.route('/auth', authRoutes);
+authApp.route('/internal', internalRoutes);
 
 authApp.notFound((c) => jsonError(c, 404, 'Not Found', { code: 'NOT_FOUND' }));
 

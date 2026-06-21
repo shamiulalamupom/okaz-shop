@@ -5,7 +5,7 @@ import { ordersConfig } from '../config/orders.config.js';
 const logger = createLogger('orders-events');
 
 export type OrderEvent = {
-  type: 'order.created' | 'order.validated' | 'order.rejected' | 'order.cancelled';
+  type: 'order.created' | 'order.validated' | 'order.rejected' | 'order.cancelled' | 'order.delivered';
   orderId: string;
   userId: string;
   status: string;

@@ -54,4 +54,8 @@ export class OrdersService {
   validateOrder(id: string) {
     return this.http.post<Order>(`${this.ordersUrl}/${id}/validate`, {});
   }
+
+  deliverOrder(id: string) {
+    return this.http.post<Order>(`${this.ordersUrl}/${id}/deliver`, {});
+  }
 }

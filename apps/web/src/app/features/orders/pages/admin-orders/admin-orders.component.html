@@ -54,6 +54,16 @@
               {{ validatingId() === order.id ? 'Validating…' : 'Validate' }}
             </button>
           }
+          @if (canDeliver(order)) {
+            <button
+              type="button"
+              (click)="deliver(order.id)"
+              [disabled]="deliveringId() === order.id"
+              class="inline-flex h-9 items-center justify-center rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground shadow-md ring-1 ring-foreground/5 transition-all hover:bg-secondary/80 active:translate-y-px focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+            >
+              {{ deliveringId() === order.id ? 'Updating…' : 'Mark delivered' }}
+            </button>
+          }
         </div>
       }
     </div>

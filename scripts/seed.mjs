@@ -35,12 +35,18 @@ const PRODUCTS = [
   { name: 'Quartz Phone Stand', category: 'Accessories', price: 14.0, description: 'Aluminium adjustable phone stand.', stockByStore: [] }
 ];
 
+// A random forwarded IP per request keeps the gateway login rate-limiter from
+// tripping when we log several seed users in quickly.
+const octet = () => Math.floor(Math.random() * 254) + 1;
+const randomIp = () => `10.${octet()}.${octet()}.${octet()}`;
+
 const api = async (path, { method = 'GET', token, body } = {}) => {
   const response = await fetch(`${GATEWAY_URL}${path}`, {
     method,
     headers: {
       ...(body ? { 'content-type': 'application/json' } : {}),
-      ...(token ? { authorization: `Bearer ${token}` } : {})
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      'x-forwarded-for': randomIp()
     },
     body: body ? JSON.stringify(body) : undefined
   });
@@ -77,10 +83,11 @@ const main = async () => {
 
   // 2) Reset transactional data so a re-run gives a clean slate.
   try {
-    console.log('• Resetting orders, stock entries and addresses…');
+    console.log('• Resetting orders, stock entries, addresses and notifications…');
     psql('okaz_orders', 'TRUNCATE "OrderItem", "Order" CASCADE;');
     psql('okaz_stocks', 'TRUNCATE "Stock";');
     psql('okaz_auth', 'TRUNCATE "Address";');
+    psql('okaz_notifications', 'TRUNCATE "Notification";');
   } catch {
     console.warn('  ! Could not reset tables via docker (continuing).');
   }
@@ -150,11 +157,15 @@ const main = async () => {
     [{ productId: idByName['Aurora Wireless Headphones'], storeId: stores[0].id, quantity: 2 }],
     fmt(aliceAddress)
   );
-  await placeOrder(
+  const toDeliver = await placeOrder(
     tokens.bob,
     [{ productId: idByName['Nimbus Mechanical Keyboard'], storeId: stores[0].id, quantity: 1 }],
     fmt(bobAddress)
   );
+  // VALIDATED then DELIVERED (notifies the customer)
+  if (toDeliver.body?.id) {
+    await must(`/orders/${toDeliver.body.id}/deliver`, { method: 'POST', token: tokens.admin });
+  }
   // REJECTED (over-order)
   await placeOrder(
     tokens.alice,
@@ -170,7 +181,7 @@ const main = async () => {
   if (toCancel.body?.id) {
     await must(`/orders/${toCancel.body.id}/cancel`, { method: 'POST', token: tokens.bob });
   }
-  console.log('• Created sample orders (validated / rejected / cancelled).');
+  console.log('• Created sample orders (validated / delivered / rejected / cancelled).');
 
   console.log('\nSeed complete.');
   console.log('  admin@example.com / Admin1234!      (ADMIN)');

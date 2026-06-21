@@ -4,3 +4,4 @@
 CREATE DATABASE okaz_stocks;
 CREATE DATABASE okaz_orders;
 CREATE DATABASE okaz_media;
+CREATE DATABASE okaz_notifications;

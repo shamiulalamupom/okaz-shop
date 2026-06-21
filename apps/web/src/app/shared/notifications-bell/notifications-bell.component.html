@@ -1,0 +1,72 @@
+<div class="relative">
+  <!-- Bell trigger -->
+  <button
+    type="button"
+    (click)="toggle()"
+    class="relative inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+    [attr.aria-label]="'Notifications' + (unreadCount() > 0 ? ' (' + unreadCount() + ' unread)' : '')"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="size-5"
+    >
+      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+    </svg>
+    @if (unreadCount() > 0) {
+      <span
+        class="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground tabular-nums"
+      >{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+    }
+  </button>
+
+  @if (open()) {
+    <!-- Backdrop closes the panel on outside click -->
+    <button type="button" class="fixed inset-0 z-40 cursor-default" aria-hidden="true" (click)="close()"></button>
+
+    <div
+      class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-3xl bg-card text-card-foreground shadow-xl ring-1 ring-foreground/10"
+    >
+      <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
+        <span class="font-heading text-sm font-semibold">Notifications</span>
+        @if (unreadCount() > 0) {
+          <button
+            type="button"
+            (click)="markAllRead()"
+            class="text-xs font-medium text-primary transition-all hover:text-primary/80"
+          >Mark all read</button>
+        }
+      </div>
+
+      <div class="max-h-96 overflow-y-auto">
+        @if (notifications().length === 0) {
+          <p class="px-4 py-10 text-center text-sm text-muted-foreground">You're all caught up.</p>
+        } @else {
+          @for (notification of notifications(); track notification.id) {
+            <button
+              type="button"
+              (click)="onSelect(notification)"
+              class="flex w-full flex-col gap-0.5 border-b border-border/40 px-4 py-3 text-left transition-all last:border-b-0 hover:bg-muted"
+              [class.bg-accent]="!notification.read"
+            >
+              <span class="flex items-center gap-2">
+                @if (!notification.read) {
+                  <span class="size-1.5 shrink-0 rounded-full bg-primary"></span>
+                }
+                <span class="text-sm font-medium">{{ notification.title }}</span>
+              </span>
+              <span class="text-xs text-muted-foreground">{{ notification.body }}</span>
+              <span class="text-[11px] text-muted-foreground">{{ notification.createdAt | date: 'short' }}</span>
+            </button>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

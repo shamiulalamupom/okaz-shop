@@ -8,6 +8,7 @@ const envSchema = z.object({
   AUTH_JWT_ISSUER: z.string().min(1),
   AUTH_JWT_SECRET: z.string().min(32),
   DATABASE_URL: z.string().url(),
+  INTERNAL_SERVICE_SECRET: z.string().min(16),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4001)
 });
@@ -25,6 +26,7 @@ export const authConfig = {
     issuer: parsed.AUTH_JWT_ISSUER,
     secret: parsed.AUTH_JWT_SECRET
   },
+  internalServiceSecret: parsed.INTERNAL_SERVICE_SECRET,
   nodeEnv: parsed.NODE_ENV,
   port: parsed.PORT,
   requestMaxBytes: parsed.AUTH_REQUEST_MAX_BYTES

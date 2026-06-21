@@ -5,6 +5,7 @@ import { fetchProduct } from '../../clients/products.client.js';
 import { releaseStock, reserveStock } from '../../clients/stocks.client.js';
 import { prisma } from '../../db/prisma.client.js';
 import { publishOrderEvent } from '../../events/events.publisher.js';
+import { publishOrderNotification } from '../../events/notifications.publisher.js';
 import type { CreateOrderInput } from './orders.schemas.js';
 
 const logger = createLogger('orders-service');
@@ -119,6 +120,19 @@ export const ordersService = {
       requestId
     );
 
+    // Notify staff that a new order was placed (actor is the customer, so the
+    // customer is excluded from any of their own events downstream).
+    await publishOrderNotification(
+      {
+        type: 'order.placed',
+        orderId: created.id,
+        customerId: userId,
+        actorId: userId,
+        total: Number(created.total)
+      },
+      requestId
+    );
+
     // 3. Attempt to reserve stock and finalize the order status.
     const reservationItems = lines.map((line) => ({
       productId: line.productId,
@@ -180,7 +194,7 @@ export const ordersService = {
       return { notFound: true as const };
     }
 
-    if (order.status === 'CANCELLED' || order.status === 'REJECTED') {
+    if (order.status === 'CANCELLED' || order.status === 'REJECTED' || order.status === 'DELIVERED') {
       return { invalid: true as const, order: serializeOrder(order) };
     }
 
@@ -221,7 +235,7 @@ export const ordersService = {
    * stock reservation. Succeeds → VALIDATED (stock decremented); insufficient →
    * REJECTED. Used to clear orders left unvalidated (e.g. stock service was down).
    */
-  async validateByAdmin(orderId: string, requestId: string) {
+  async validateByAdmin(orderId: string, actorId: string, requestId: string) {
     const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
 
     if (!order) {
@@ -279,6 +293,66 @@ export const ordersService = {
       requestId
     );
 
+    // Notify the customer of the outcome (actor is the staff member, so they are
+    // excluded; the customer who owns the order is notified).
+    await publishOrderNotification(
+      {
+        type: finalized.status === 'VALIDATED' ? 'order.validated' : 'order.rejected',
+        orderId: finalized.id,
+        customerId: finalized.userId,
+        actorId,
+        total: Number(finalized.total)
+      },
+      requestId
+    );
+
     return { order: serializeOrder(finalized) };
+  },
+
+  /**
+   * Management action: marks a VALIDATED order as DELIVERED and notifies the
+   * customer. Only VALIDATED orders can transition to DELIVERED.
+   */
+  async deliver(orderId: string, actorId: string, requestId: string) {
+    const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+
+    if (!order) {
+      return { notFound: true as const };
+    }
+
+    if (order.status !== 'VALIDATED') {
+      return { invalid: true as const, order: serializeOrder(order) };
+    }
+
+    const delivered = await prisma.order.update({
+      where: { id: order.id },
+      data: { status: 'DELIVERED' },
+      include: { items: true }
+    });
+
+    await publishOrderEvent(
+      {
+        type: 'order.delivered',
+        orderId: delivered.id,
+        userId: delivered.userId,
+        status: delivered.status,
+        total: Number(delivered.total),
+        at: new Date().toISOString()
+      },
+      requestId
+    );
+
+    await publishOrderNotification(
+      {
+        type: 'order.delivered',
+        orderId: delivered.id,
+        customerId: delivered.userId,
+        actorId,
+        total: Number(delivered.total)
+      },
+      requestId
+    );
+
+    return { order: serializeOrder(delivered) };
   }
 };

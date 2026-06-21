@@ -54,6 +54,8 @@ services:
         condition: service_healthy
       media:
         condition: service_healthy
+      notifications:
+        condition: service_healthy
     environment:
       GATEWAY_PORT: 4000
       AUTH_SERVICE_URL: http://auth:4001
@@ -61,6 +63,7 @@ services:
       STOCKS_SERVICE_URL: http://stocks:4003
       ORDERS_SERVICE_URL: http://orders:4004
       MEDIA_SERVICE_URL: http://media:4005
+      NOTIFICATIONS_SERVICE_URL: http://notifications:4006
       GATEWAY_SERVICE_URL: http://gateway:4000
       INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
@@ -115,6 +118,7 @@ services:
       AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}
       AUTH_JWT_EXPIRES_IN_SECONDS: ${AUTH_JWT_EXPIRES_IN_SECONDS:-3600}
       AUTH_REQUEST_MAX_BYTES: ${AUTH_REQUEST_MAX_BYTES:-1024}
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
       ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin@example.com}
       ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-Admin1234!}
       NODE_ENV: development
@@ -204,6 +208,7 @@ services:
       AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}
       PRODUCTS_SERVICE_URL: http://products:4002
       STOCKS_SERVICE_URL: http://stocks:4003
+      NOTIFICATIONS_SERVICE_URL: http://notifications:4006
       EVENTS_SINK_URL: http://gateway:4000
       INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
       ORDERS_REQUEST_MAX_BYTES: ${ORDERS_REQUEST_MAX_BYTES:-8192}
@@ -252,6 +257,38 @@ services:
         [
           "CMD-SHELL",
           'node -e "fetch(''http://localhost:4005/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  notifications:
+    build:
+      context: .
+      dockerfile: apps/notifications/Dockerfile
+    container_name: okaz-notifications
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NOTIFICATIONS_PORT: 4006
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/okaz_notifications?schema=public
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-characters}
+      AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-okaz-auth}
+      AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-okaz-api}
+      AUTH_SERVICE_URL: http://auth:4001
+      EVENTS_SINK_URL: http://gateway:4000
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-replace-with-a-long-random-internal-secret}
+      NOTIFICATIONS_REQUEST_MAX_BYTES: ${NOTIFICATIONS_REQUEST_MAX_BYTES:-4096}
+      NODE_ENV: development
+    command: sh -c "pnpm prisma:migrate:deploy && pnpm start"
+    expose:
+      - "4006"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://localhost:4006/live'').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
       interval: 10s
       timeout: 5s

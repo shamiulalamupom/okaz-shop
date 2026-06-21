@@ -13,6 +13,7 @@ enum OrderStatus {
   VALIDATED
   REJECTED
   CANCELLED
+  DELIVERED
 }
 
 model Order {

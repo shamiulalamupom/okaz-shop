@@ -65,6 +65,7 @@
           }
         </a>
         @if (isAuthenticated()) {
+          <app-notifications-bell />
           <span class="hidden max-w-40 truncate text-sm text-muted-foreground md:inline">
             {{ user()?.email }}
           </span>

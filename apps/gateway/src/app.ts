@@ -19,6 +19,7 @@ import { createProductsProxyRoutes } from "./modules/products-proxy/products-pro
 import { createStocksProxyRoutes } from "./modules/stocks-proxy/stocks-proxy.routes.js";
 import { createOrdersProxyRoutes } from "./modules/orders-proxy/orders-proxy.routes.js";
 import { createMediaProxyRoutes } from "./modules/media-proxy/media-proxy.routes.js";
+import { createNotificationsProxyRoutes } from "./modules/notifications-proxy/notifications-proxy.routes.js";
 import { createInternalRoutes } from "./modules/internal/internal.routes.js";
 import { createDemoRoutes } from "./modules/demo/demo.routes.js";
 import { createHealthRoutes } from "./modules/health/health.routes.js";
@@ -74,6 +75,13 @@ gatewayApp.route(
 gatewayApp.route(
   "/media",
   createMediaProxyRoutes(gatewayConfig.mediaServiceUrl, gatewayConfig.jwt),
+);
+gatewayApp.route(
+  "/notifications",
+  createNotificationsProxyRoutes(
+    gatewayConfig.notificationsServiceUrl,
+    gatewayConfig.jwt,
+  ),
 );
 gatewayApp.route(
   "/internal",

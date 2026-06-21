@@ -114,6 +114,8 @@ export class OrderDetailComponent {
     switch (status) {
       case 'VALIDATED':
         return 'bg-primary/15 text-primary';
+      case 'DELIVERED':
+        return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
       case 'REJECTED':
         return 'bg-destructive/10 text-destructive';
       case 'CANCELLED':
