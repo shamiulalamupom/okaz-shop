@@ -1,8 +1,9 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { AuthService } from '../../../../core/auth/auth.service';
 import { Order, OrderStatus } from '../../../../core/orders/order.models';
 import { OrdersService } from '../../../../core/orders/orders.service';
 import { ProductsService } from '../../../../core/products/products.service';
@@ -20,6 +21,7 @@ export class OrderDetailComponent {
   private readonly productsService = inject(ProductsService);
   private readonly stocksService = inject(StocksService);
   private readonly realtime = inject(RealtimeService);
+  private readonly auth = inject(AuthService);
 
   private readonly orderId = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -27,6 +29,12 @@ export class OrderDetailComponent {
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
   readonly isCancelling = signal(false);
+  readonly isDelivering = signal(false);
+
+  /** Staff (store managers / admins) can mark a validated order delivered. */
+  readonly canManage = computed(
+    () => this.auth.roles().includes('STORE_MANAGER') || this.auth.roles().includes('ADMIN'),
+  );
 
   // Lookups so order lines show product/store names instead of raw ids.
   private readonly productNames = signal<Record<string, string>>({});
@@ -107,6 +115,23 @@ export class OrderDetailComponent {
         next: (order) => this.order.set(order),
         error: (error) =>
           this.errorMessage.set(error?.error?.message ?? error?.error?.error ?? 'Could not cancel this order.'),
+      });
+  }
+
+  deliver() {
+    const current = this.order();
+    if (!current) {
+      return;
+    }
+
+    this.isDelivering.set(true);
+    this.ordersService
+      .deliverOrder(current.id)
+      .pipe(finalize(() => this.isDelivering.set(false)))
+      .subscribe({
+        next: (order) => this.order.set(order),
+        error: (error) =>
+          this.errorMessage.set(error?.error?.message ?? error?.error?.error ?? 'Could not mark this order delivered.'),
       });
   }
 

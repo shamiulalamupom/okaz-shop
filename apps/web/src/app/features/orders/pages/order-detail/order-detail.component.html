@@ -76,14 +76,42 @@
       </div>
 
       @if (item.status === 'VALIDATED' || item.status === 'PENDING') {
-        <button
-          type="button"
-          (click)="cancel()"
-          [disabled]="isCancelling()"
-          class="inline-flex h-11 items-center justify-center rounded-full bg-destructive/10 px-5 text-sm font-medium text-destructive transition-all hover:bg-destructive/20 active:translate-y-px disabled:pointer-events-none disabled:opacity-60"
-        >
-          {{ isCancelling() ? 'Cancelling…' : 'Cancel order' }}
-        </button>
+        <div class="flex flex-wrap items-center gap-3">
+          @if (canManage() && item.status === 'VALIDATED') {
+            <button
+              type="button"
+              (click)="deliver()"
+              [disabled]="isDelivering()"
+              class="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-5 text-sm font-medium text-white shadow-md ring-1 ring-emerald-700/20 transition-all hover:bg-emerald-700 active:translate-y-px focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-emerald-500/40 disabled:pointer-events-none disabled:opacity-60"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-4"
+              >
+                <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+                <path d="M14 9h4l4 4v4a1 1 0 0 1-1 1h-1" />
+                <path d="M9 18h6" />
+                <circle cx="7" cy="18" r="2" />
+                <circle cx="17" cy="18" r="2" />
+              </svg>
+              {{ isDelivering() ? 'Updating…' : 'Mark delivered' }}
+            </button>
+          }
+          <button
+            type="button"
+            (click)="cancel()"
+            [disabled]="isCancelling()"
+            class="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-destructive/10 px-5 text-sm font-medium text-destructive transition-all hover:bg-destructive/20 active:translate-y-px disabled:pointer-events-none disabled:opacity-60"
+          >
+            {{ isCancelling() ? 'Cancelling…' : 'Cancel order' }}
+          </button>
+        </div>
       }
     </div>
   }
